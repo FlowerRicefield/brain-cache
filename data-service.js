@@ -193,8 +193,8 @@ class DataService {
     }
   }
 
-  _subscribeFirebaseCaches(callback) {
-    const { collection, query, orderBy, onSnapshot } = require("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+  async _subscribeFirebaseCaches(callback) {
+    const { collection, query, orderBy, onSnapshot } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
 
     const q = query(
       collection(this.db, "users", this.currentUser.uid, "caches"),
