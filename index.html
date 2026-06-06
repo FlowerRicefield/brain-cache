@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Cache Clear</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // --- Firebase 設定 (ご自身のプロジェクト情報に書き換えてください) ---
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Firebase 初期化
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // 状態管理
+        let currentUser = null;
+        let unsubscribe = null;
+
+        // DOM 要素の取得
+        const loginContainer = document.getElementById('login-container');
+        const appContainer = document.getElementById('app-container');
+        const btnAnonLogin = document.getElementById('btn-anon-login');
+        const btnGoogleLogin = document.getElementById('btn-google-login');
+        const btnLogout = document.getElementById('btn-logout');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        
+        const cacheForm = document.getElementById('cache-form');
+        const cacheInput = document.getElementById('cache-input');
+        const cacheList = document.getElementById('cache-list');
+        const totalCountEl = document.getElementById('total-count');
+
+        // 認証状態の監視
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                showApp();
+                setupRealtimeListener();
+            } else {
+                currentUser = null;
+                if (unsubscribe) unsubscribe();
+                showLogin();
+            }
+        });
+
+        // ログイン・ログアウト処理
+        btnAnonLogin.addEventListener('click', async () => {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                alert('匿名ログインに失敗しました: ' + error.message);
+            }
+        });
+
+        btnGoogleLogin.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                alert('Googleログインに失敗しました: ' + error.message);
+            }
+        });
+
+        btnLogout.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                alert('ログアウトに失敗しました: ' + error.message);
+            }
+        });
+
+        function showApp() {
+            loginContainer.classList.add('hidden');
+            appContainer.classList.remove('hidden');
+            
+            // ユーザー情報の表示
+            if (currentUser.isAnonymous) {
+                userName.textContent = 'ゲストユーザー';
+                userAvatar.innerHTML = '<i data-lucide="user" class="w-5 h-5 text-slate-500"></i>';
+            } else {
+                userName.textContent = currentUser.displayName || 'ユーザー';
+                if (currentUser.photoURL) {
+                    userAvatar.innerHTML = `<img src="${currentUser.photoURL}" class="w-8 h-8 rounded-full" alt="avatar">`;
+                } else {
+                    userAvatar.innerHTML = '<i data-lucide="user" class="w-5 h-5 text-slate-500"></i>';
+                }
+            }
+            lucide.createIcons();
+        }
+
+        function showLogin() {
+            loginContainer.classList.remove('hidden');
+            appContainer.classList.add('hidden');
+        }
+
+        // データのリアルタイム同期
+        function setupRealtimeListener() {
+            const q = query(
+                collection(db, 'users', currentUser.uid, 'caches'),
+                orderBy('createdAt', 'desc')
+            );
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                cacheList.innerHTML = '';
+                totalCountEl.textContent = snapshot.size;
+
+                if (snapshot.empty) {
+                    cacheList.innerHTML = `
+                        <div class="text-center py-12 text-slate-400">
+                            <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
+                            <p class="text-sm">脳内はクリアです。吐き出したい思考を上に書き留めましょう。</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const li = document.createElement('li');
+                    li.className = "bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex justify-between items-start gap-4 transition-all hover:border-slate-200 group";
+                    
+                    const textContent = (data.text || '').replace(/\n/g, '<br>');
+                    
+                    li.innerHTML = `
+                        <div class="flex-1 min-w-0">
+                            <p class="text-slate-700 text-sm md:text-base whitespace-pre-wrap break-words">${textContent}</p>
+                            <span class="text-xs text-slate-400 mt-2 block">
+                                ${data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleString('ja-JP') : '保存中...'}
+                            </span>
+                        </div>
+                        <button data-id="${docSnap.id}" class="btn-delete text-slate-400 hover:text-rose-500 p-1 rounded-lg hover:bg-rose-50/50 transition-colors opacity-100 md:opacity-0 group-hover:opacity-100">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    `;
+                    cacheList.appendChild(li);
+                });
+
+                document.querySelectorAll('.btn-delete').forEach(button => {
+                    button.addEventListener('click', async (e) => {
+                        const targetBtn = e.currentTarget;
+                        const cacheId = targetBtn.getAttribute('data-id');
+                        if (confirm('このキャッシュをクリア（削除）しますか？')) {
+                            try {
+                                await deleteDoc(doc(db, 'users', currentUser.uid, 'caches', cacheId));
+                            } catch (error) {
+                                alert('削除に失敗しました: ' + error.message);
+                            }
+                        }
+                    });
+                });
+
+                lucide.createIcons();
+            }, (error) => {
+                console.error("Firestoreの読み込みエラー:", error);
+            });
+        }
+
+        // キャッシュの追加
+        cacheForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = cacheInput.value.trim();
+            if (!text) return;
+
+            try {
+                cacheInput.value = '';
+                cacheInput.style.height = 'auto';
+                
+                await addDoc(collection(db, 'users', currentUser.uid, 'caches'), {
+                    text: text,
+                    createdAt: serverTimestamp()
+                });
+            } catch (error) {
+                alert('保存に失敗しました: ' + error.message);
+                cacheInput.value = text;
+            }
+        });
+
+        // テキストエリアの自動伸縮
+        cacheInput.addEventListener('input', () => {
+            cacheInput.style.height = 'auto';
+            cacheInput.style.height = cacheInput.scrollHeight + 'px';
+        });
+    </script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #fafafa;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <div id="login-container" class="flex-1 flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-2xl border border-slate-200/60 p-8 shadow-xs text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-900 text-white mb-6">
+                <i data-lucide="brain-circuit" class="w-8 h-8"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight text-slate-950 mb-2">Brain Cache Clear</h1>
+            <p class="text-sm text-slate-500 mb-8">
+                頭の中のモヤモヤや一時的なメモを吐き出して、<br>脳のワーキングメモリを即座に解放しましょう。
+            </p>
+            
+            <div class="space-y-3">
+                <button id="btn-google-login" class="w-full flex items-center justify-center gap-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium py-3 px-4 rounded-xl transition-colors cursor-pointer text-sm">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c
