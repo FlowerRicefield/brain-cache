@@ -4,12 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Brain Cache Clear - Ultimate Pro</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts (Plus Jakarta Sans & Noto Sans JP) -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <!-- FontAwesome 6 Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></link>
   
   <style>
     body {
@@ -28,1499 +25,915 @@
     }
     .drag-over {
       border-color: #3b82f6 !important;
-      background-color: rgba(59, 130, 246, 0.12) !important;
-      box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+      background-color: rgba(59, 130, 246, 0.1) !important;
     }
-    /* スワイプコンテナ */
-    .swipe-container {
-      position: relative;
-      overflow: hidden;
-      touch-action: pan-y;
-    }
-    .swipe-card {
-      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease-out;
-    }
-    /* 3Dカードスワイプ（サルベージモーダル用） */
-    .card-container {
-      perspective: 1200px;
-    }
-    .swipe-card-target {
-      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15), opacity 0.3s ease;
-      transform-origin: center bottom;
-    }
-    /* スクロールバーのカスタマイズ */
+    /* カスタムスクールバー */
     ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
+      width: 6px;
+      height: 6px;
     }
     ::-webkit-scrollbar-track {
       background: transparent;
     }
     ::-webkit-scrollbar-thumb {
-      background: #1e293b;
-      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #334155;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    /* サルベージカードのアニメーション */
+    .salvage-card {
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease;
+      cursor: grab;
+    }
+    .salvage-card:active {
+      cursor: grabbing;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col overflow-x-hidden select-none">
+<body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
 
-  <!-- ヘッダー -->
-  <header class="border-b border-gray-900 bg-gray-950/80 sticky top-0 z-40 blur-bg px-4 py-3">
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
-      <!-- アプリロゴ -->
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-          <i class="fa-solid fa-brain text-white text-lg animate-pulse"></i>
-        </div>
-        <div>
-          <h1 class="font-extrabold text-base tracking-wider bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent flex items-center gap-2">
-            Brain Cache 
-            <span class="text-[9px] font-mono tracking-normal px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/20">PRO EXTENDED</span>
-          </h1>
-          <p class="text-[10px] text-gray-500 font-medium">脳のキャッシュを瞬時に消去し、自動的にサルベージする</p>
-        </div>
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-gradient-to-br from-indigo-600/10 to-transparent blur-[120px]"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tl from-emerald-600/5 to-transparent blur-[150px]"></div>
+  </div>
+
+  <header class="sticky top-0 z-40 w-full border-b border-white/[0.06] bg-[#05070f]/70 blur-bg px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <i class="fa-solid fa-bolt text-white text-lg"></i>
       </div>
-      
-      <!-- 右側コントロール類 -->
-      <div class="flex items-center space-x-3">
-        <!-- 同期ステータス -->
-        <div id="sync-status" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-gray-905 border border-gray-900 text-[10px] text-gray-400 font-mono">
-          <span class="w-1.5 h-1.5 rounded-full bg-gray-600" id="sync-indicator"></span>
-          <span id="sync-text">接続待機中</span>
-        </div>
+      <div>
+        <h1 class="text-sm font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+          BRAIN CACHE CLEAR
+        </h1>
+        <p class="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Ultimate Pro v1.1</p>
+      </div>
+    </div>
 
-        <!-- Google サインインボタン -->
-        <button id="btn-google-auth" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white text-gray-905 hover:bg-gray-100 transition text-xs font-extrabold shadow-sm">
-          <i class="fa-brands fa-google"></i>
-          <span id="auth-btn-text">Google連携</span>
-        </button>
+    <div class="flex items-center space-x-2">
+      <button id="btnGoogleAuth" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] active:scale-95 transition text-xs font-semibold text-slate-300">
+        <i class="fa-brands fa-google text-slate-400"></i>
+        <span id="authBtnText">Google連携</span>
+      </button>
+
+      <button id="btnTriggerSalvage" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-md shadow-indigo-600/10 active:scale-95 transition">
+        <i class="fa-solid fa-layer-group"></i>
+        <span>サルベージ</span>
+      </button>
+
+      <div id="syncStatus" class="flex items-center justify-center h-8 w-8 rounded-lg bg-white/[0.04] border border-white/[0.06] text-slate-400" title="同期完了">
+        <i class="fa-solid fa-cloud text-xs"></i>
       </div>
     </div>
   </header>
 
-  <!-- Google サインイン解説モーダル -->
-  <div id="auth-modal" class="fixed inset-0 bg-black/85 blur-bg z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-gray-950 border border-gray-900 rounded-3xl p-6 max-w-sm w-full text-center space-y-4 shadow-2xl">
-      <div class="w-12 h-12 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto text-lg">
-        <i class="fa-solid fa-shield-halved"></i>
-      </div>
-      <div>
-        <h3 class="font-bold text-gray-100 text-sm">個人情報は一切取得しません</h3>
-        <p class="text-xs text-gray-500 mt-2 leading-relaxed">
-          メールアドレスや氏名などのプライベート情報の収集を防ぎ、完全にクリーンな環境で利用していただくため、安全なGoogle匿名トークン認証のみに限定しています。
-        </p>
-      </div>
-      <button id="btn-do-login" class="w-full py-2.5 rounded-xl bg-white text-gray-950 font-bold text-xs flex items-center justify-center space-x-2 hover:bg-gray-200 transition">
-        <i class="fa-brands fa-google text-sm"></i>
-        <span>Googleアカウントで接続</span>
-      </button>
-      <button id="btn-close-auth" class="text-xs text-gray-600 hover:text-gray-400 block mx-auto pt-1">閉じる</button>
-    </div>
-  </div>
+  <main class="flex-1 max-w-4xl w-full mx-auto p-4 z-10 flex flex-col space-y-4">
 
-  <!-- マッチングアプリ風 ポップアップサルベージモーダル (中央ポップアップ・縦長長方形) -->
-  <div id="salvage-modal" class="fixed inset-0 bg-black/90 blur-bg z-50 flex items-center justify-center p-4 hidden">
-    <div class="w-full max-w-xs flex flex-col items-center space-y-5 relative">
-      <!-- スキップ（閉じる）ボタン -->
-      <button id="btn-close-salvage" class="absolute -top-12 right-2 text-gray-400 hover:text-white transition flex items-center space-x-1.5 text-xs font-semibold">
-        <i class="fa-solid fa-xmark text-lg"></i>
-        <span>スキップ</span>
-      </button>
+    <div class="w-full rounded-2xl border border-white/[0.06] bg-gray-900/40 p-4 shadow-xl relative overflow-hidden group">
+      <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 transform scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500"></div>
 
-      <!-- 縦長カードコンテナ -->
-      <div class="card-container relative w-full h-[450px] flex items-center justify-center">
-        <!-- 3:4に近い美しい縦長プロポーションのカード -->
-        <div id="swipe-card-element" class="swipe-card-target absolute w-[300px] h-[400px] bg-gradient-to-b from-gray-900 to-slate-950 border border-gray-800 rounded-3xl p-6 shadow-2xl flex flex-col justify-between cursor-grab active:cursor-grabbing select-none">
-          <!-- 上部ヘッダー -->
-          <div>
-            <div class="flex justify-between items-center text-[9px] text-cyan-400 mb-4 font-mono font-bold tracking-wider uppercase bg-cyan-950/50 px-2.5 py-1 rounded-full border border-cyan-500/10">
-              <span id="card-date">サルベージ候補</span>
-              <span id="card-time">⏱ 00s</span>
-            </div>
-            <!-- テキストスクロール領域 -->
-            <div class="overflow-y-auto max-h-[220px] pr-1">
-              <p id="card-text" class="text-sm sm:text-base text-gray-200 font-semibold leading-relaxed break-all">
-                ここに過去に吐き出した脳内キャッシュが表示されます。
-              </p>
-            </div>
+      <div class="relative">
+        <textarea id="cacheInput" rows="3" class="w-full bg-transparent border-0 resize-none outline-none focus:ring-0 text-slate-200 placeholder-slate-500 text-sm leading-relaxed" placeholder="いま脳内にある思考・タスク・感情をすべて吐き出す... (Ctrl+Enter または Enterで解放)"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between mt-2 pt-3 border-t border-white/[0.04]">
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2 text-xs font-semibold text-slate-400">
+            <i class="fa-regular fa-clock text-indigo-400"></i>
+            <span id="timerLabel">00:00</span>
           </div>
-
-          <!-- 下部ガイダンスと意思決定ラベル -->
-          <div class="space-y-3 pt-4 border-t border-gray-900">
-            <div class="flex justify-between items-center text-[10px] text-gray-500">
-              <span>👈 左に払う: スルー</span>
-              <span>右に払う: 今日やる 👉</span>
-            </div>
-            <div class="text-[11px] text-center font-bold text-emerald-400 bg-emerald-950/20 py-2 rounded-xl border border-emerald-500/10">
-              ⚡ 今日取り組む Today タブへ追加
-            </div>
+          <div class="w-24 h-1 bg-white/[0.06] rounded-full overflow-hidden hidden sm:block">
+            <div id="timerProgress" class="h-full bg-indigo-500 w-0 transition-all duration-300"></div>
+          </div>
+          <div id="detectedCategory" class="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 hidden">
+            💡 タスク自動判定
           </div>
         </div>
 
-        <!-- すべてやり遂げた状態の終了画面 -->
-        <div id="deck-empty-state" class="hidden text-center py-12 flex flex-col items-center justify-center space-y-4">
-          <div class="w-16 h-16 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-2xl mb-1 animate-bounce">
-            <i class="fa-solid fa-trophy"></i>
-          </div>
-          <h3 class="text-base font-extrabold text-white">今日のサルベージ完了！</h3>
-          <p class="text-xs text-gray-400 max-w-[200px] mx-auto leading-relaxed">
-            今日やるべき課題が「Todayタブ」に完全に整理されました。
-          </p>
-          <button id="btn-finish-salvage" class="px-5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition shadow-lg shadow-cyan-500/20">
-            ダッシュボードへ戻る
-          </button>
-        </div>
-      </div>
-
-      <!-- 操作ボタン -->
-      <div id="deck-controls" class="flex justify-center items-center space-x-6 mt-2">
-        <button id="btn-swipe-left" class="w-12 h-12 rounded-full border border-gray-800 bg-gray-950 hover:bg-red-950/20 text-gray-500 hover:text-red-400 flex items-center justify-center transition-all shadow-md hover:scale-105" title="スルー (左スワイプ)">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-        <button id="btn-swipe-right" class="w-14 h-14 rounded-full border border-cyan-500/40 bg-gray-950 hover:bg-cyan-950/30 text-cyan-400 flex items-center justify-center transition-all shadow-lg shadow-cyan-500/10 hover:scale-105" title="今日取り組む！ (右スワイプ)">
-          <i class="fa-solid fa-check text-xl"></i>
+        <button id="btnRelease" class="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:hover:bg-indigo-600 text-white font-bold text-xs tracking-wide shadow-lg shadow-indigo-600/10 transition active:scale-95">
+          <span>脳内解放</span>
+          <i class="fa-solid fa-paper-plane text-[10px]"></i>
         </button>
       </div>
     </div>
-  </div>
 
-  <!-- メインコンテンツグリッド -->
-  <main class="flex-1 max-w-6xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
-    
-    <!-- 左エリア: インプット・メモ一覧 (8カラム) -->
-    <section class="lg:col-span-8 flex flex-col space-y-4">
-      
-      <!-- クラウド保護通知バナー -->
-      <div id="cloud-info-banner" class="hidden bg-cyan-950/20 border border-cyan-500/20 rounded-2xl p-3 flex items-center justify-between text-xs text-cyan-300">
-        <div class="flex items-center space-x-2">
-          <i class="fa-solid fa-cloud-arrow-up text-cyan-400 text-sm animate-pulse"></i>
-          <span><strong>セキュアクラウド稼働中:</strong> あなたの脳内データは安全に同期されています。</span>
-        </div>
-        <span id="user-id-display" class="font-mono text-[9px] bg-cyan-950 px-2 py-0.5 rounded border border-cyan-500/10 text-gray-400">UID</span>
-      </div>
-      
-      <!-- タイムプレッシャータイマー -->
-      <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 flex items-center justify-between shadow-xl">
-        <div class="flex items-center space-x-3">
-          <div class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></div>
-          <div>
-            <div class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold font-mono">Real-time Outflow Speed</div>
-            <div id="current-action-label" class="text-sm font-medium text-gray-200">考えを書くとタイマーが開始します</div>
-          </div>
-        </div>
-        
-        <!-- タイマー表示 -->
-        <div class="flex items-center space-x-2 bg-black/40 px-3 py-1.5 rounded-xl border border-gray-800">
-          <i class="fa-regular fa-clock text-cyan-400 text-sm"></i>
-          <span id="writing-timer" class="font-mono text-xl font-bold text-cyan-400 w-16 text-right">00.0s</span>
-        </div>
-      </div>
-
-      <!-- メインインプット (エディタ) -->
-      <div class="bg-gray-900/40 border border-gray-800 rounded-2xl p-5 flex flex-col space-y-4 shadow-xl focus-within:border-cyan-500/40 transition">
-        <div class="flex items-center justify-between text-xs text-gray-400">
-          <span>考えを書いて [Enter] で脳内から即時リリース</span>
-          <span class="text-gray-500 text-right">脳の空き容量: <span id="brain-capacity" class="text-cyan-400 font-bold">100%</span></span>
-        </div>
-        
-        <textarea id="cache-input" 
-          placeholder="いま頭の中を占拠していること、課題、雑念、漠然とした思考をそのまま吐き出そう..." 
-          class="w-full min-h-[100px] bg-transparent text-gray-100 placeholder-gray-650 focus:outline-none resize-none text-base leading-relaxed"
-          autofocus
-        ></textarea>
-
-        <div class="flex items-center justify-between pt-2 border-t border-gray-800/60">
-          <span class="text-xs text-gray-500 flex items-center gap-1 font-mono">
-            <kbd class="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-[9px]">Ctrl</kbd> + <kbd class="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-[9px]">Enter</kbd> で改行
-          </span>
-          <div class="flex items-center space-x-2">
-            <!-- 朝のサルベージ起動ボタン -->
-            <button id="btn-trigger-salvage" class="px-3.5 py-2 rounded-xl bg-cyan-950/60 hover:bg-cyan-900/40 border border-cyan-500/30 text-cyan-400 text-xs font-bold transition flex items-center space-x-1.5">
-              <i class="fa-solid fa-clone animate-pulse"></i>
-              <span>朝のサルベージ</span>
-            </button>
-            <button id="btn-release" class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold text-sm transition shadow-lg shadow-cyan-500/20 flex items-center space-x-2">
-              <span>脳からリリース</span>
-              <i class="fa-solid fa-cloud-arrow-up"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 切り替えタブ（未整理 / Today / 完了アーカイブ） -->
-      <div class="flex items-center justify-between border-b border-gray-800 pb-2">
-        <div class="flex space-x-2 overflow-x-auto">
-          <button id="tab-active" class="px-3 py-2 text-xs sm:text-sm font-bold border-b-2 border-cyan-500 text-cyan-400 transition flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-bolt-lightning text-cyan-400"></i>
-            <span>未整理キャッシュ</span>
-            <span id="active-count" class="bg-gray-800 text-gray-300 text-[9px] px-1.5 py-0.5 rounded-full font-bold">0</span>
-          </button>
-          <button id="tab-today" class="px-3 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-circle-check text-emerald-500"></i>
-            <span>Today (今日やる)</span>
-            <span id="today-count" class="bg-gray-800 text-gray-300 text-[9px] px-1.5 py-0.5 rounded-full font-bold">0</span>
-          </button>
-          <button id="tab-completed" class="px-3 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition flex items-center gap-1.5 shrink-0">
-            <i class="fa-solid fa-archive text-purple-400"></i>
-            <span>完了アーカイブ</span>
-            <span id="completed-count" class="bg-gray-800 text-gray-500 text-[9px] px-1.5 py-0.5 rounded-full font-bold">0</span>
-          </button>
-        </div>
-        <button id="btn-clear-all" class="text-xs text-gray-600 hover:text-red-400 transition flex items-center gap-1 pl-2 shrink-0">
-          <i class="fa-solid fa-trash-can text-[10px]"></i>
-          <span>一括削除</span>
+    <div class="flex items-center justify-between border-b border-white/[0.06] pb-1">
+      <div class="flex space-x-1">
+        <button id="tabToday" class="px-4 py-2 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 transition">
+          Today <span id="countToday" class="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-medium">0</span>
+        </button>
+        <button id="tabArchive" class="px-4 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+          Archive
         </button>
       </div>
 
-      <!-- メモ一覧コンテナ -->
-      <div class="flex-1 flex flex-col space-y-3">
-        <!-- 指示案内 -->
-        <p id="swipe-guide" class="text-[11px] text-gray-500 flex items-center gap-1 leading-normal">
-          <i class="fa-solid fa-info-circle text-cyan-500"></i>
-          <span>カテゴリのタグをカードに重ねてドラッグ＆ドロップ分類。右スワイプで完了アーカイブへ。タップで会話追記。</span>
-        </p>
-
-        <!-- プレースホルダー（空状態） -->
-        <div id="empty-state" class="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed border-gray-850 rounded-2xl bg-gray-900/10 text-center">
-          <div class="w-14 h-14 rounded-full bg-gray-900 flex items-center justify-center text-gray-600 mb-3">
-            <i class="fa-solid fa-cloud-sun text-xl"></i>
-          </div>
-          <p class="text-gray-400 text-sm font-medium">現在、脳のキャッシュは完全にクリーンです！</p>
-          <p class="text-[11px] text-gray-600 mt-1">思い浮かんだ雑念を書き出して頭の容量を解放しましょう。</p>
+      <div class="flex items-center space-x-1 overflow-x-auto py-1 max-w-[50%] sm:max-w-none no-scrollbar">
+        <span class="text-[10px] font-bold text-slate-500 mr-1 hidden sm:inline">分類:</span>
+        <div data-category="inbox" class="category-chip text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-white/[0.06] bg-white/[0.02] text-slate-400 hover:bg-white/[0.04] cursor-pointer transition flex items-center space-x-1" draggable="true">
+          <i class="fa-solid fa-inbox text-[10px]"></i> <span>Inbox</span>
         </div>
-
-        <!-- ログリスト -->
-        <div id="salvage-container" class="space-y-3">
-          <!-- メモカードが動的に挿入されます -->
+        <div data-category="task" class="category-chip text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-orange-500/10 bg-orange-500/5 text-orange-400 hover:bg-orange-500/10 cursor-pointer transition flex items-center space-x-1" draggable="true">
+          <i class="fa-solid fa-check-to-slot text-[10px]"></i> <span>Task</span>
+        </div>
+        <div data-category="idea" class="category-chip text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-cyan-500/10 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10 cursor-pointer transition flex items-center space-x-1" draggable="true">
+          <i class="fa-solid fa-lightbulb text-[10px]"></i> <span>Idea</span>
+        </div>
+        <div data-category="emotion" class="category-chip text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-pink-500/10 bg-pink-500/5 text-pink-400 hover:bg-pink-500/10 cursor-pointer transition flex items-center space-x-1" draggable="true">
+          <i class="fa-solid fa-heart text-[10px]"></i> <span>Emotion</span>
         </div>
       </div>
+    </div>
 
-    </section>
-
-    <!-- 右エリア: カテゴリドラッグ ＆ 統計 (4カラム) -->
-    <section class="lg:col-span-4 flex flex-col space-y-6">
-      
-      <!-- ドラッグ＆ドロップパレット -->
-      <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 shadow-xl">
-        <div class="mb-3">
-          <h2 class="font-bold text-base text-gray-100 flex items-center space-x-2">
-            <i class="fa-solid fa-tags text-cyan-500"></i>
-            <span>直感カテゴリパレット</span>
-          </h2>
-          <p class="text-xs text-gray-400 mt-1">以下のカテゴリタグをドラッグして、左のメモカードにドロップして割り当てます。</p>
-        </div>
-
-        <!-- ドラッグチップリスト -->
-        <div id="category-pallet" class="grid grid-cols-2 gap-2 pt-2">
-          <div draggable="true" data-category="todo" class="category-chip cursor-grab active:cursor-grabbing px-3 py-2.5 rounded-xl bg-red-900/30 border border-red-500/30 hover:border-red-500/60 text-red-300 flex items-center space-x-2 transition text-sm select-none">
-            <i class="fa-solid fa-circle-check text-red-500 text-xs"></i>
-            <span class="font-semibold">TODO</span>
-          </div>
-          <div draggable="true" data-category="idea" class="category-chip cursor-grab active:cursor-grabbing px-3 py-2.5 rounded-xl bg-amber-900/30 border border-amber-500/30 hover:border-amber-500/60 text-amber-300 flex items-center space-x-2 transition text-sm select-none">
-            <i class="fa-solid fa-lightbulb text-amber-500 text-xs"></i>
-            <span class="font-semibold">アイデア</span>
-          </div>
-          <div draggable="true" data-category="worry" class="category-chip cursor-grab active:cursor-grabbing px-3 py-2.5 rounded-xl bg-purple-900/30 border border-purple-500/30 hover:border-purple-500/60 text-purple-300 flex items-center space-x-2 transition text-sm select-none">
-            <i class="fa-solid fa-brain text-purple-500 text-xs"></i>
-            <span class="font-semibold">悩みごと</span>
-          </div>
-          <div draggable="true" data-category="note" class="category-chip cursor-grab active:cursor-grabbing px-3 py-2.5 rounded-xl bg-blue-900/30 border border-blue-500/30 hover:border-blue-500/60 text-blue-300 flex items-center space-x-2 transition text-sm select-none">
-            <i class="fa-solid fa-file-invoice text-blue-500 text-xs"></i>
-            <span class="font-semibold">ただのメモ</span>
-          </div>
-        </div>
+    <div id="cacheContainer" class="flex flex-col space-y-2 min-h-[200px]">
+      <div class="text-center py-12 text-slate-500 text-xs">
+        <i class="fa-solid fa-wand-magic-sparkles text-slate-600 block text-xl mb-2"></i>
+        脳内のキャッシュが完全にクリアされています
       </div>
+    </div>
 
-      <!-- トラフィック分析 -->
-      <div class="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 shadow-xl">
-        <h2 class="font-bold text-sm text-gray-400 flex items-center space-x-2 mb-4">
-          <i class="fa-solid fa-chart-bar text-cyan-500"></i>
-          <span>思考のトラフィック分析</span>
-        </h2>
-        
-        <div class="space-y-4">
-          <div class="bg-black/30 p-3 rounded-xl border border-gray-800 flex justify-between items-center">
-            <span class="text-xs text-gray-400">合計吐き出し時間</span>
-            <span id="total-time-stat" class="font-mono text-sm font-bold text-cyan-400">0.0秒</span>
-          </div>
-
-          <div class="bg-black/30 p-3 rounded-xl border border-gray-800 flex justify-between items-center">
-            <span class="text-xs text-gray-400">平均リリース速度</span>
-            <span id="avg-time-stat" class="font-mono text-sm font-bold text-emerald-400">0.0秒</span>
-          </div>
-
-          <!-- カテゴリシェア -->
-          <div class="space-y-2.5">
-            <span class="text-xs text-gray-400">カテゴリ別アウトプット配分</span>
-            <div class="space-y-2 text-xs text-gray-300">
-              <div class="flex justify-between items-center">
-                <span>TODO</span>
-                <span id="share-todo" class="font-semibold">0%</span>
-              </div>
-              <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                <div id="bar-todo" class="bg-red-500 h-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-
-              <div class="flex justify-between items-center pt-1">
-                <span>アイデア</span>
-                <span id="share-idea" class="font-semibold">0%</span>
-              </div>
-              <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                <div id="bar-idea" class="bg-amber-500 h-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-
-              <div class="flex justify-between items-center pt-1">
-                <span>悩みごと</span>
-                <span id="share-worry" class="font-semibold">0%</span>
-              </div>
-              <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                <div id="bar-worry" class="bg-purple-500 h-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-
-              <div class="flex justify-between items-center pt-1">
-                <span>ただのメモ</span>
-                <span id="share-note" class="font-semibold">0%</span>
-              </div>
-              <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                <div id="bar-note" class="bg-blue-500 h-full transition-all duration-300" style="width: 0%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </section>
   </main>
 
-  <!-- LINE風 思考の深掘りドロワー (スレッド機能) -->
-  <div id="thread-drawer" class="fixed inset-y-0 right-0 w-full sm:w-[440px] bg-gray-950 border-l border-gray-900 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col hidden">
-    <!-- ドロワーヘッダー -->
-    <div class="p-4 border-b border-gray-800 bg-gray-900/90 flex items-center justify-between">
+  <footer class="w-full text-center py-4 border-t border-white/[0.04] text-[10px] text-slate-600 font-medium mt-auto">
+    &copy; 2026 Brain Cache Clear. Designed with Liquid Glass.
+  </footer>
+
+  <div id="threadDrawer" class="fixed inset-y-0 right-0 w-full sm:w-[420px] bg-gray-900/95 blur-bg border-l border-white/[0.08] shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out hidden flex-col">
+    <div class="p-4 border-b border-white/[0.06] flex items-center justify-between">
       <div class="flex items-center space-x-2">
-        <i class="fa-solid fa-comments text-cyan-400"></i>
-        <h3 class="font-bold text-sm text-gray-200">思考の深掘り (追記スレッド)</h3>
+        <span class="text-xs font-bold text-indigo-400 px-2 py-0.5 bg-indigo-500/10 rounded">思考の深掘り</span>
+        <span id="threadMetaTime" class="text-[11px] text-slate-500">00:00</span>
       </div>
-      <button id="btn-close-drawer" class="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center transition">
-        <i class="fa-solid fa-xmark"></i>
+      <button id="btnCloseThread" class="h-7 w-7 rounded-lg hover:bg-white/[0.06] flex items-center justify-center text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-xmark text-sm"></i>
       </button>
     </div>
-
-    <!-- スレッド親メモ情報 -->
-    <div class="p-4 bg-gray-900/40 border-b border-gray-800/60">
-      <div class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider mb-1">大元の思考キャッシュ</div>
-      <p id="thread-parent-text" class="text-xs sm:text-sm text-gray-300 leading-relaxed font-semibold break-all">親メモの内容がここに入ります...</p>
+    <div class="p-4 bg-white/[0.01] border-b border-white/[0.04]">
+      <p id="threadOriginText" class="text-xs text-slate-300 leading-relaxed font-medium break-all"></p>
     </div>
-
-    <!-- チャット表示領域 -->
-    <div id="thread-chat-body" class="flex-1 overflow-y-auto p-4 space-y-3.5 bg-gray-950">
-      <!-- LINE風の小さな吹き出しが並びます -->
+    <div id="threadMessageLog" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
+      </div>
+    <div class="px-4 py-1.5 bg-indigo-950/40 border-t border-indigo-500/10 flex items-center justify-between text-[11px] text-slate-400">
+      <span class="flex items-center space-x-1"><i class="fa-solid fa-business-time text-indigo-400"></i> <span>深掘り制限時間:</span></span>
+      <span id="threadTimerLabel" class="font-bold text-indigo-300">05:00</span>
     </div>
+    <div class="p-3 border-t border-white/[0.06] bg-[#090d1a] flex items-center space-x-2">
+      <input id="threadInput" type="text" class="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 transition" placeholder="さらに深掘り・具体策をメモ...">
+      <button id="btnSendThread" class="h-8 w-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition active:scale-95">
+        <i class="fa-solid fa-arrow-up text-xs"></i>
+      </button>
+    </div>
+  </div>
 
-    <!-- 追記インプット（タイマー付き） -->
-    <div class="p-4 border-t border-gray-800 bg-gray-900/90 flex flex-col space-y-3">
-      <div class="flex justify-between items-center text-[10px] text-gray-500 font-mono">
-        <span>タイムアタック追記中</span>
-        <span class="flex items-center space-x-1 font-bold text-cyan-400">
-          <i class="fa-regular fa-clock"></i>
-          <span id="thread-timer">00.0s</span>
-        </span>
+  <div id="salvageModal" class="fixed inset-0 bg-[#05070f]/90 blur-bg z-50 hidden flex-col items-center justify-center p-4">
+    <div class="max-w-md w-full flex flex-col items-center space-y-6 relative">
+      
+      <div class="text-center space-y-1">
+        <h2 class="text-base font-extrabold tracking-tight text-white flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-layer-group text-indigo-400"></i>
+          <span>思考サルベージ・デック</span>
+        </h2>
+        <p class="text-[11px] text-slate-400 px-6">過去の埋もれた未処理キャッシュを再評価。左右のスワイプまたはボタンで仕分けてください。</p>
       </div>
 
-      <div class="flex items-end space-x-2">
-        <textarea id="thread-input" placeholder="このトピックについてさらに連鎖して閃いたことを追記..." class="flex-1 bg-gray-950 border border-gray-850 rounded-xl px-3 py-2 text-xs text-gray-200 placeholder-gray-650 focus:outline-none focus:border-cyan-500/50 resize-none h-11 min-h-[44px] max-h-[80px]" rows="1"></textarea>
-        <button id="btn-thread-send" class="w-11 h-11 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white flex items-center justify-center shadow-lg shadow-cyan-500/20 transition">
-          <i class="fa-solid fa-paper-plane"></i>
+      <div id="salvageDeckSlot" class="w-full aspect-[4/3] bg-gray-900/60 border border-white/[0.08] rounded-2xl relative shadow-2xl flex items-center justify-center overflow-hidden">
+        <div class="text-slate-600 text-xs text-center p-6">
+          <i class="fa-solid fa-box-open text-xl mb-2 block text-slate-700"></i>
+          サルベージ待ちのキャッシュはありません
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center space-x-4 w-full">
+        <button id="btnSalvageArchive" class="flex flex-col items-center justify-center h-12 w-12 rounded-full border border-orange-500/20 bg-orange-500/5 text-orange-400 hover:bg-orange-500/10 active:scale-90 transition shadow-lg">
+          <i class="fa-solid fa-box-archive text-sm"></i>
+          <span class="text-[8px] font-bold mt-0.5">アーカイブ</span>
+        </button>
+
+        <button id="btnSalvageKeep" class="flex flex-col items-center justify-center h-14 w-14 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/10 active:scale-90 transition shadow-xl shadow-emerald-950/20">
+          <i class="fa-solid fa-bolt text-base animate-pulse"></i>
+          <span class="text-[9px] font-bold mt-0.5">今日やる</span>
+        </button>
+
+        <button id="btnSalvageDelete" class="flex flex-col items-center justify-center h-12 w-12 rounded-full border border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/10 active:scale-90 transition shadow-lg">
+          <i class="fa-solid fa-trash-can text-sm"></i>
+          <span class="text-[8px] font-bold mt-0.5">消去</span>
+        </button>
+      </div>
+
+      <div class="flex items-center space-x-3 pt-2">
+        <button id="btnFinishSalvage" class="px-4 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] text-slate-300 text-xs font-semibold transition">
+          完了して戻る
+        </button>
+        <button id="btnCloseSalvage" class="text-slate-500 hover:text-slate-400 text-xs font-medium underline underline-offset-4 transition">
+          一時閉じる
         </button>
       </div>
     </div>
   </div>
 
-  <!-- トースト通知 -->
-  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2"></div>
+  <div id="authModal" class="fixed inset-0 bg-black/60 blur-bg z-50 hidden items-center justify-center p-4">
+    <div class="w-full max-w-xs rounded-2xl border border-white/[0.08] bg-gray-900 p-5 shadow-2xl space-y-4">
+      <div class="text-center space-y-1">
+        <div class="h-10 w-10 mx-auto rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+          <i class="fa-solid fa-shield-halved text-base"></i>
+        </div>
+        <h3 class="text-xs font-bold text-slate-200">クラウドセキュア同期</h3>
+        <p class="text-[10px] text-slate-500">複数デバイス間での暗号化同期を有効化します</p>
+      </div>
 
-  <!-- Firebase modules -->
+      <div class="space-y-2 pt-2">
+        <button id="btnDoLogin" class="w-full flex items-center justify-center space-x-2 py-2 rounded-xl bg-white text-slate-900 font-bold text-xs hover:bg-slate-100 transition active:scale-98">
+          <i class="fa-brands fa-google text-slate-900"></i>
+          <span>Googleアカウントでサインイン</span>
+        </button>
+        <button id="btnCloseAuth" class="w-full py-1.5 rounded-xl bg-transparent text-slate-500 text-[11px] font-medium hover:text-slate-400 transition">
+          キャンセル
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="fixed bottom-4 left-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-    import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, addDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+      getFirestore, collection, doc, setDoc, addDoc, getDocs, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { 
+      getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, linkWithCredential 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    // --- グローバル状態管理の一元化 (Unified State) ---
+    // Firebase 構成情報 (ダミー設定：必要に応じて本番情報に書き換えてください)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDummyKey_For_Preview_Purposes_Only",
+      authDomain: "brain-cache-clear.firebaseapp.com",
+      projectId: "brain-cache-clear",
+      storageBucket: "brain-cache-clear.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdefg123456"
+    };
+
+    // グローバルアプリケーション状態管理
     const state = {
-      notes: [],
-      currentTab: 'active', // 'active' (未整理) | 'today' (今日やる) | 'completed' (アーカイブ)
-      timerValue: 0.0,
-      timerInterval: null,
+      db: null,
+      auth: null,
+      currentUser: null,
+      caches: [],          // Firestoreから取得した全データ
+      activeTab: 'today',   // today | archive
+      draggedCategory: null,// ドラッグ中のカテゴリ識別子
+      
+      // 入力タイマー関連
+      typingTimer: null,
       isTypingStarted: false,
-      draggedCategory: null,
-      user: null,
-      selectedNoteIdForThread: null, // スレッド親ノートのID
-      threadTimerValue: 0.0,
-      threadTimerInterval: null,
+      typingSeconds: 0,
+
+      // スレッド関連
+      activeThreadId: null,
+      threadTypingTimer: null,
+      threadTypingSeconds: 0,
       threadTypingStarted: false,
-      // サルベージ（ポップアップカード）関連
-      salvageIndex: 0,
-      salvagedItems: []
+
+      // サルベージデック
+      salvageDeckList: [],
+      salvageCurrentIndex: 0
     };
 
-    // Firebase環境設定
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'brain-cache-clear-prod';
-    const configRaw = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-    let db = null;
-    let auth = null;
-    let isCloudActive = false;
-
-    // DOMの参照取得
-    const syncIndicator = document.getElementById('sync-indicator');
-    const syncText = document.getElementById('sync-text');
-    const cloudBanner = document.getElementById('cloud-info-banner');
-    const userIdDisplay = document.getElementById('user-id-display');
-    const cacheInput = document.getElementById('cache-input');
-    const writingTimer = document.getElementById('writing-timer');
-    const btnRelease = document.getElementById('btn-release');
-    const emptyState = document.getElementById('empty-state');
-    const salvageContainer = document.getElementById('salvage-container');
-    const btnClearAll = document.getElementById('btn-clear-all');
-    const currentActionLabel = document.getElementById('current-action-label');
-    const brainCapacityEl = document.getElementById('brain-capacity');
-
-    // Google認証
-    const btnGoogleAuth = document.getElementById('btn-google-auth');
-    const authBtnText = document.getElementById('auth-btn-text');
-    const authModal = document.getElementById('auth-modal');
-    const btnDoLogin = document.getElementById('btn-do-login');
-    const btnCloseAuth = document.getElementById('btn-close-auth');
-
-    // タブDOM
-    const tabActive = document.getElementById('tab-active');
-    const tabToday = document.getElementById('tab-today');
-    const tabCompleted = document.getElementById('tab-completed');
-    const activeCountEl = document.getElementById('active-count');
-    const todayCountEl = document.getElementById('today-count');
-    const completedCountEl = document.getElementById('completed-count');
-
-    // サルベージ（ポップアップ）
-    const btnTriggerSalvage = document.getElementById('btn-trigger-salvage');
-    const salvageModal = document.getElementById('salvage-modal');
-    const btnCloseSalvage = document.getElementById('btn-close-salvage');
-    const btnFinishSalvage = document.getElementById('btn-finish-salvage');
-    const swipeCardElement = document.getElementById('swipe-card-element');
-    const deckEmptyState = document.getElementById('deck-empty-state');
-    const deckControls = document.getElementById('deck-controls');
-    const cardDate = document.getElementById('card-date');
-    const cardTime = document.getElementById('card-time');
-    const cardText = document.getElementById('card-text');
-    const btnSwipeLeft = document.getElementById('btn-swipe-left');
-    const btnSwipeRight = document.getElementById('btn-swipe-right');
-
-    // トラフィック分析（統計）
-    const totalTimeStat = document.getElementById('total-time-stat');
-    const avgTimeStat = document.getElementById('avg-time-stat');
-    const shareTodo = document.getElementById('share-todo');
-    const shareIdea = document.getElementById('share-idea');
-    const shareWorry = document.getElementById('share-worry');
-    const shareNote = document.getElementById('share-note');
-    const barTodo = document.getElementById('bar-todo');
-    const barIdea = document.getElementById('bar-idea');
-    const barWorry = document.getElementById('bar-worry');
-    const barNote = document.getElementById('bar-note');
-
-    // スレッド（深掘り）
-    const threadDrawer = document.getElementById('thread-drawer');
-    const btnCloseDrawer = document.getElementById('btn-close-drawer');
-    const threadParentText = document.getElementById('thread-parent-text');
-    const threadChatBody = document.getElementById('thread-chat-body');
-    const threadInput = document.getElementById('thread-input');
-    const btnThreadSend = document.getElementById('btn-thread-send');
-    const threadTimerEl = document.getElementById('thread-timer');
-
-    // クラウド同期状態の表示制御
-    function setSyncState(status) {
-      if (!syncIndicator) return;
-      if (status === 'syncing') {
-        syncIndicator.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
-        syncText.textContent = '同期中...';
-      } else if (status === 'synced') {
-        syncIndicator.className = 'w-2 h-2 rounded-full bg-emerald-500';
-        syncText.textContent = 'クラウド同期済み';
-      } else if (status === 'error') {
-        syncIndicator.className = 'w-2 h-2 rounded-full bg-red-500';
-        syncText.textContent = 'オフライン保存中';
-      }
-    }
-
-    // --- Firebase初期化 & 認証 (RULE 1, 3遵守の安全設計) ---
-    async function initFirebase() {
-      if (!configRaw) {
-        setSyncState('error');
-        return;
-      }
-
-      try {
-        setSyncState('syncing');
-        const config = JSON.parse(configRaw);
-        const app = initializeApp(config);
-        auth = getAuth(app);
-        db = getFirestore(app);
-
-        // RULE 3: まず認証トークンのバインド
-        if (initialAuthToken) {
-          await signInWithCustomToken(auth, initialAuthToken).catch(async () => {
-            await signInAnonymously(auth);
-          });
-        } else {
-          await signInAnonymously(auth);
-        }
-
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            state.user = user;
-            isCloudActive = true;
-            if (user.isAnonymous) {
-              authBtnText.textContent = "Google連携";
-            } else {
-              authBtnText.textContent = "連携完了";
-              btnGoogleAuth.className = "flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-500/20 text-xs font-bold";
-            }
-            cloudBanner.classList.remove('hidden');
-            userIdDisplay.textContent = `UID: ${user.uid.substring(0, 8)}`;
-            setupRealtimeSync(); // リアルタイム監視起動
-          } else {
-            isCloudActive = false;
-            setSyncState('error');
-          }
-        });
-
-      } catch (err) {
-        console.error("Firebase connection fallback active: ", err);
-        setSyncState('error');
-      }
-    }
-
-    // デモ用初期思考ログデータのロード
-    function loadLocalFallback() {
-      state.notes = [
-        { 
-          id: "m5", 
-          text: "最終的にはキャッシュの掘り起こしをしてサジェストしてくれる機能が欲しい。", 
-          timeElapsed: "45.7", 
-          status: "active",
-          createdAt: Date.now() - 180000,
-          date: "10:09", 
-          threads: [
-            { text: "サジェスト機能だが、マッチングアプリのカードスワイプのUIにしたい。", timeElapsed: "35.7", date: "10:09" },
-            { text: "今日取り組もうと思うものを右にスワイプ。今日はやめとくものを左にスワイプする。今日やりたいものにスワイプしたものはダッシュボードのTodayに表示されるようにする", timeElapsed: "104.5", date: "10:09" }
-          ] 
-        },
-        { 
-          id: "m4", 
-          text: "トピックをタイトルとして、そのなかにあるメモを内容として書けばいいな。", 
-          timeElapsed: "28.5", 
-          status: "active",
-          createdAt: Date.now() - 240000,
-          date: "10:08", 
-          threads: [] 
-        },
-        { 
-          id: "m3", 
-          text: "このメモを一発でコピペしてAIのチャット画面に貼って作業を進めてもらいたい。そのためにAIが理解しやすい、マークダウンでコピーできるようにしたい。", 
-          timeElapsed: "56.6", 
-          status: "active",
-          createdAt: Date.now() - 300000,
-          date: "10:07", 
-          threads: [] 
-        },
-        { 
-          id: "m2", 
-          text: "アカウント機能も追加したい。けど個人情報を取得するのは嫌だから、googleでサインインとか限定にしたい", 
-          timeElapsed: "56.5", 
-          status: "active",
-          createdAt: Date.now() - 360000,
-          date: "10:06", 
-          threads: [] 
-        },
-        { 
-          id: "m1", 
-          text: "思考の深掘りセッション。もっとホームをシンプルにする。", 
-          timeElapsed: "15.0", 
-          status: "active",
-          createdAt: Date.now() - 480000,
-          date: "10:04", 
-          threads: [
-            { text: "また、geminiだとやはりやりづらい。適当なサーバーで運用したい。", timeElapsed: "88.6", date: "10:05" }
-          ] 
-        }
-      ];
-      renderNotes();
-      updateStats();
-    }
-
-    // RULE 2: Firestoreリアルタイム同期（OrderBy/Where制約に抵触しないよう全件引いてインメモリソート）
-    function setupRealtimeSync() {
-      if (!isCloudActive || !state.user) return;
-
-      const notesCollection = collection(db, 'artifacts', appId, 'users', state.user.uid, 'notes');
-
-      onSnapshot(notesCollection, (snapshot) => {
-        let syncedNotes = [];
-        snapshot.forEach((doc) => {
-          syncedNotes.push({ id: doc.id, ...doc.data() });
-        });
-
-        // インメモリ並び替え（降順）
-        syncedNotes.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-
-        state.notes = syncedNotes;
-        renderNotes();
-        updateStats();
-        setSyncState('synced');
-
-        // チャット詳細スレッドの更新反映
-        if (state.selectedNoteIdForThread) {
-          const currentNote = state.notes.find(n => n.id === state.selectedNoteIdForThread);
-          if (currentNote) {
-            renderThreadChats(currentNote);
-          }
-        }
-      }, (error) => {
-        console.error("Firestore synchronizer error: ", error);
-        setSyncState('error');
-      });
-    }
-
-    // --- キャッシュ作成 ---
-    async function releaseCache() {
-      const text = cacheInput.value.trim();
-      if (!text) return;
-
-      const elapsed = state.timerValue > 0 ? state.timerValue.toFixed(1) : (1.0 + Math.random() * 5).toFixed(1);
-
-      const payload = {
-        text: text,
-        timeElapsed: elapsed,
-        category: null,
-        status: "active",
-        createdAt: Date.now(),
-        date: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
-        threads: []
-      };
-
-      // 楽観的UI反映（通信ラグなしで追加）
-      saveLocalOnly(payload);
-
-      if (isCloudActive && state.user) {
-        setSyncState('syncing');
-        const notesCollection = collection(db, 'artifacts', appId, 'users', state.user.uid, 'notes');
-        try {
-          await addDoc(notesCollection, payload);
-          setSyncState('synced');
-        } catch (e) {
-          setSyncState('error');
-        }
-      }
-
-      cacheInput.value = "";
-      resetTimer();
-      cacheInput.focus();
-    }
-
-    function saveLocalOnly(payload) {
-      const newNote = { id: Date.now().toString(), ...payload };
-      state.notes.unshift(newNote);
-      renderNotes();
-      updateStats();
-    }
-
-    // --- AIプロンプト用個別Markdownコピー ---
-    window.copyTopicMarkdown = function(noteId) {
-      const note = state.notes.find(n => n.id === noteId);
-      if (!note) return;
-
-      let markdown = `## 📌 トピック: ${note.text}\n`;
-      markdown += `- **思考スピード**: ${note.timeElapsed}s\n`;
-      markdown += `- **書き出し時刻**: ${note.date || '不明'}\n`;
-
-      if (note.threads && note.threads.length > 0) {
-        markdown += `### 💬 チャット追記内容:\n`;
-        note.threads.forEach((t, idx) => {
-          markdown += `  - **追記 ${idx + 1}**: ${t.text} (スピード: ${t.timeElapsed}s | 記録: ${t.date})\n`;
-        });
-      } else {
-        markdown += `- *追記された対話ログなし*\n`;
-      }
-
-      // クリップボードへコピー (Canvas用の確実なドキュメント・フォールバック)
-      const tempTextArea = document.createElement("textarea");
-      tempTextArea.value = markdown;
-      document.body.appendChild(tempTextArea);
-      tempTextArea.select();
-      try {
-        document.execCommand('copy');
-        showToast("AIが即座に解釈できるトピック構造のMarkdownをコピーしました！", "success");
-      } catch (err) {
-        showToast("コピー処理に失敗しました", "warning");
-      }
-      document.body.removeChild(tempTextArea);
-    };
-
-    // --- タスク状態（未整理/Today/アーカイブ）更新 ---
-    async function updateNoteStatus(noteId, targetStatus) {
-      const note = state.notes.find(n => n.id === noteId);
-      if (!note) return;
-
-      updateStatusLocal(noteId, targetStatus);
-
-      if (isCloudActive && state.user) {
-        setSyncState('syncing');
-        const noteDoc = doc(db, 'artifacts', appId, 'users', state.user.uid, 'notes', noteId);
-        try {
-          await updateDoc(noteDoc, { status: targetStatus });
-          setSyncState('synced');
-        } catch (e) {
-          setSyncState('error');
-        }
-      }
-    }
-
-    function updateStatusLocal(noteId, status) {
-      const note = state.notes.find(n => n.id === noteId);
-      if (note) {
-        note.status = status;
-        renderNotes();
-        updateStats();
-      }
-    }
-
-    // --- カテゴリタグ割り当て ---
-    async function assignCategory(noteId, category) {
-      const note = state.notes.find(n => n.id === noteId);
-      if (!note) return;
-
-      updateCategoryLocal(noteId, category);
-
-      if (isCloudActive && state.user) {
-        setSyncState('syncing');
-        const noteDoc = doc(db, 'artifacts', appId, 'users', state.user.uid, 'notes', noteId);
-        try {
-          await updateDoc(noteDoc, { category: category });
-          setSyncState('synced');
-        } catch (e) {
-          setSyncState('error');
-        }
-      }
-    }
-
-    function updateCategoryLocal(noteId, category) {
-      const note = state.notes.find(n => n.id === noteId);
-      if (note) {
-        note.category = category;
-        renderNotes();
-        updateStats();
-      }
-    }
-
-    // --- メモカードの描画 (Pro Layout & ドラッグ衝突防止) ---
-    function renderNotes() {
-      const activeNotes = state.notes.filter(n => (n.status || 'active') === 'active');
-      const todayNotes = state.notes.filter(n => n.status === 'today');
-      const completedNotes = state.notes.filter(n => n.status === 'completed');
-
-      // タブカウンター同期
-      activeCountEl.textContent = activeNotes.length;
-      todayCountEl.textContent = todayNotes.length;
-      completedCountEl.textContent = completedNotes.length;
-
-      let targetList = activeNotes;
-      if (state.currentTab === 'today') targetList = todayNotes;
-      if (state.currentTab === 'completed') targetList = completedNotes;
-
-      salvageContainer.innerHTML = '';
-
-      if (targetList.length === 0) {
-        emptyState.classList.remove('hidden');
-        salvageContainer.classList.add('hidden');
-        return;
-      }
-
-      emptyState.classList.add('hidden');
-      salvageContainer.classList.remove('hidden');
-
-      targetList.forEach(note => {
-        const itemContainer = document.createElement('div');
-        itemContainer.className = "swipe-container bg-gray-950 rounded-2xl border border-gray-800/60 shadow-lg select-none relative drop-zone";
-        itemContainer.dataset.id = note.id;
-
-        // カテゴリバッジ
-        let catBadge = '';
-        if (note.category) {
-          const catColors = {
-            todo: 'bg-red-500/10 text-red-400 border-red-500/20',
-            idea: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-            worry: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-            note: 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-          };
-          const catNames = { todo: 'TODO', idea: 'アイデア', worry: '悩みごと', note: 'ただのメモ' };
-          catBadge = `
-            <span class="px-2 py-0.5 rounded-md border text-[10px] font-bold ${catColors[note.category] || ''}">
-              ${catNames[note.category]}
-            </span>
-          `;
-        } else {
-          catBadge = `
-            <span class="px-2 py-0.5 rounded-md border border-dashed border-gray-800 text-[10px] text-gray-500 font-mono">
-              未分類
-            </span>
-          `;
-        }
-
-        // タスク状態に応じたプロモート/デモートボタン
-        let statusActionButton = '';
-        if (note.status === 'today') {
-          statusActionButton = `
-            <button class="btn-demote-active w-8 h-8 rounded-full bg-cyan-955 text-cyan-400 border border-cyan-500/20 flex items-center justify-center hover:bg-cyan-900 transition" title="未整理に戻す">
-              <i class="fa-solid fa-arrow-left text-xs"></i>
-            </button>
-          `;
-        } else if (note.status === 'completed') {
-          statusActionButton = `
-            <button class="btn-demote-active w-8 h-8 rounded-full bg-purple-955 text-purple-400 border border-purple-500/20 flex items-center justify-center hover:bg-purple-900 transition" title="未整理に戻す">
-              <i class="fa-solid fa-rotate-left text-xs"></i>
-            </button>
-          `;
-        } else {
-          statusActionButton = `
-            <button class="btn-promote-today w-8 h-8 rounded-full bg-emerald-955 text-emerald-400 border border-emerald-500/20 flex items-center justify-center hover:bg-emerald-900 transition" title="Today(今日やる)へ">
-              <i class="fa-solid fa-calendar-day text-xs"></i>
-            </button>
-          `;
-        }
-
-        const threadCount = note.threads ? note.threads.length : 0;
-        const threadBadge = threadCount > 0 ? 
-          `<span class="text-[10px] bg-cyan-950 text-cyan-400 border border-cyan-500/20 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-            <i class="fa-regular fa-comments"></i>
-            <span>${threadCount}通の追記</span>
-          </span>` : '';
-
-        itemContainer.innerHTML = `
-          <!-- スワイプ判定時の背景色変化 -->
-          <div class="absolute inset-y-0 left-0 w-full bg-emerald-600/20 flex items-center pl-6 text-emerald-400 opacity-0 transition-opacity" id="swipe-bg-${note.id}">
-            <i class="fa-solid fa-archive text-xl mr-2 animate-bounce"></i>
-            <span class="font-bold text-sm">完了アーカイブへ</span>
-          </div>
-          
-          <!-- メインカード本体 -->
-          <div class="swipe-card p-4 bg-gray-900/40 hover:bg-gray-900/75 border-b border-gray-800/80 cursor-pointer relative z-10 transition-shadow duration-300 flex flex-col space-y-3" id="card-inner-${note.id}">
-            <div class="flex items-start justify-between">
-              <div class="flex items-center space-x-2">
-                <span class="text-[10px] font-mono text-cyan-500 bg-cyan-950/30 px-1.5 py-0.5 rounded border border-cyan-500/20">⏱ ${note.timeElapsed}s</span>
-                ${catBadge}
-                ${threadBadge}
-              </div>
-              
-              <!-- アクションボタン群 -->
-              <div class="flex items-center space-x-1.5" onclick="event.stopPropagation();">
-                <!-- AIマークダウンコピー -->
-                <button class="btn-topic-markdown w-8 h-8 rounded-full bg-purple-950/50 text-purple-400 border border-purple-500/20 flex items-center justify-center hover:bg-purple-900 transition" title="AI用Markdownをコピー">
-                  <i class="fa-solid fa-robot text-xs"></i>
-                </button>
-                
-                ${statusActionButton}
-                
-                <button class="btn-delete w-8 h-8 rounded-full bg-gray-900 text-gray-500 hover:text-red-500 hover:bg-red-950/20 flex items-center justify-center transition" title="消去">
-                  <i class="fa-solid fa-trash-can text-xs"></i>
-                </button>
-              </div>
-            </div>
-            
-            <p class="text-sm text-gray-100 leading-relaxed break-all">${note.text}</p>
-            
-            <div class="flex justify-between items-center text-[10px] text-gray-600">
-              <span class="text-gray-500"><i class="fa-solid fa-arrow-turn-up text-[9px] rotate-90 text-cyan-500"></i> タップして深掘りスレッドを展開</span>
-              <span>${note.date || 'たった今'}</span>
-            </div>
-          </div>
-        `;
-
-        const innerCard = itemContainer.querySelector(`#card-inner-${note.id}`);
-        const swipeBg = itemContainer.querySelector(`#swipe-bg-${note.id}`);
-
-        // カードをタップして追記スレッドを開く
-        innerCard.addEventListener('click', () => {
-          openThreadDrawer(note.id);
-        });
-
-        // ボタンの個別アクション設定
-        itemContainer.querySelector('.btn-topic-markdown').addEventListener('click', (e) => {
-          e.stopPropagation();
-          copyTopicMarkdown(note.id);
-        });
-
-        const promoteBtn = itemContainer.querySelector('.btn-promote-today');
-        if (promoteBtn) {
-          promoteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            updateNoteStatus(note.id, 'today');
-          });
-        }
-
-        const demoteBtn = itemContainer.querySelector('.btn-demote-active');
-        if (demoteBtn) {
-          demoteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            updateNoteStatus(note.id, 'active');
-          });
-        }
-
-        itemContainer.querySelector('.btn-delete').addEventListener('click', (e) => {
-          e.stopPropagation();
-          deleteNote(note.id);
-        });
-
-        // --- 右スワイプ（完了アーカイブ移動）ジェスチャーコントロール ---
-        let startX = 0;
-        let currentX = 0;
-        let isSwiping = false;
-
-        const handleStart = (clientX) => {
-          if (note.status === 'completed') return;
-          startX = clientX;
-          isSwiping = true;
-          innerCard.style.transition = 'none';
-        };
-
-        const handleMove = (clientX) => {
-          if (!isSwiping) return;
-          currentX = clientX;
-          const diff = currentX - startX;
-
-          if (diff > 0) {
-            innerCard.style.transform = `translateX(${diff}px)`;
-            swipeBg.style.opacity = Math.min(1, diff / 120);
-          }
-        };
-
-        const handleEnd = () => {
-          if (!isSwiping) return;
-          isSwiping = false;
-          const diff = currentX - startX;
-          innerCard.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease-out';
-
-          if (diff > 140) {
-            innerCard.style.transform = 'translateX(100%)';
-            innerCard.style.opacity = '0';
-            setTimeout(() => {
-              updateNoteStatus(note.id, 'completed');
-            }, 180);
-          } else {
-            innerCard.style.transform = 'translateX(0px)';
-            swipeBg.style.opacity = '0';
-          }
-          startX = 0;
-          currentX = 0;
-        };
-
-        innerCard.addEventListener('touchstart', (e) => handleStart(e.touches[0].clientX));
-        innerCard.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX));
-        innerCard.addEventListener('touchend', handleEnd);
-
-        let isMouseDown = false;
-        innerCard.addEventListener('mousedown', (e) => {
-          if (state.draggedCategory) return; // タグのドラッグドロップ処理中はスワイプをブロック
-          isMouseDown = true;
-          handleStart(e.clientX);
-        });
-        window.addEventListener('mousemove', (e) => {
-          if (!isMouseDown) return;
-          handleMove(e.clientX);
-        });
-        window.addEventListener('mouseup', () => {
-          if (isMouseDown) {
-            isMouseDown = false;
-            handleEnd();
-          }
-        });
-
-        // --- ドラッグ＆ドロップ（タグの付与）バグ修復 & 実装 ---
-        itemContainer.addEventListener('dragenter', (e) => {
-          e.preventDefault();
-          if (state.draggedCategory) {
-            itemContainer.classList.add('drag-over');
-          }
-        });
-
-        itemContainer.addEventListener('dragover', (e) => {
-          e.preventDefault();
-        });
-
-        itemContainer.addEventListener('dragleave', () => {
-          itemContainer.classList.remove('drag-over');
-        });
-
-        itemContainer.addEventListener('drop', (e) => {
-          e.preventDefault();
-          itemContainer.classList.remove('drag-over');
-          if (state.draggedCategory) {
-            assignCategory(note.id, state.draggedCategory);
-          }
-        });
-
-        salvageContainer.appendChild(itemContainer);
-      });
-    }
-
-    // --- 削除 ---
-    async function deleteNote(noteId) {
-      deleteLocal(noteId);
-
-      if (isCloudActive && state.user) {
-        setSyncState('syncing');
-        const noteDoc = doc(db, 'artifacts', appId, 'users', state.user.uid, 'notes', noteId);
-        try {
-          await deleteDoc(noteDoc);
-          setSyncState('synced');
-        } catch (e) {
-          setSyncState('error');
-        }
-      }
-    }
-
-    function deleteLocal(noteId) {
-      state.notes = state.notes.filter(n => n.id !== noteId);
-      renderNotes();
-      updateStats();
-      showToast("脳から綺麗さっぱり抹消されました");
-    }
-
-    // 一括削除
-    async function clearAllNotes() {
-      const label = state.currentTab === 'active' ? '未整理' : state.currentTab === 'today' ? 'Today' : '完了アーカイブ';
-      if (!confirm(`本当に「${label}」のキャッシュを一括消去しますか？`)) return;
-
-      const targets = state.notes.filter(n => {
-        if (state.currentTab === 'today') return n.status === 'today';
-        if (state.currentTab === 'completed') return n.status === 'completed';
-        return (n.status || 'active') === 'active';
-      });
-
-      const ids = targets.map(n => n.id);
-      state.notes = state.notes.filter(n => !ids.includes(n.id));
-      renderNotes();
-      updateStats();
-
-      if (isCloudActive && state.user) {
-        setSyncState('syncing');
-        try {
-          const promises = targets.map(n => deleteDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'notes', n.id)));
-          await Promise.all(promises);
-          setSyncState('synced');
-        } catch (e) {
-          setSyncState('error');
-        }
-      }
-    }
-
-    // --- LINE風：思考の深掘りスレッド ---
-    window.openThreadDrawer = function(noteId) {
-      const note = state.notes.find(n => n.id === noteId);
-      if (!note) return;
-
-      state.selectedNoteIdForThread = noteId;
-      threadParentText.textContent = note.text;
-      
-      renderThreadChats(note);
-
-      threadDrawer.classList.remove('hidden');
-      setTimeout(() => {
-        threadDrawer.classList.remove('translate-x-full');
-      }, 50);
-
-      startThreadTimer();
-      threadInput.focus();
-    };
-
-    function closeThreadDrawer() {
-      threadDrawer.classList.add('translate-x-full');
-      setTimeout(() => {
-        threadDrawer.classList.add('hidden');
-      }, 300);
-      state.selectedNoteIdForThread = null;
-      resetThreadTimer();
-    }
-
-    function renderThreadChats(note) {
-      threadChatBody.innerHTML = '';
-      
-      const systemBox = document.createElement('div');
-      systemBox.className = "flex justify-center my-1.5";
-      systemBox.innerHTML = `<span class="bg-gray-900 border border-gray-855 text-gray-500 text-[9px] px-2.5 py-0.5 rounded-full font-mono">LINE-style Deepening Log</span>`;
-      threadChatBody.appendChild(systemBox);
-
-      const threads = note.threads || [];
-      if (threads.length === 0) {
-        const emptyBox = document.createElement('div');
-        emptyBox.className = "text-center text-xs text-gray-600 py-6";
-        emptyBox.innerHTML = `<span>このトピックは未深掘りです。連想したアイデアを追記してください。</span>`;
-        threadChatBody.appendChild(emptyBox);
-        return;
-      }
-
-      threads.forEach(t => {
-        const bubble = document.createElement('div');
-        bubble.className = "flex flex-col items-end space-y-1";
-        bubble.innerHTML = `
-          <div class="flex items-end space-x-1.5 max-w-[90%]">
-            <span class="text-[8px] font-mono text-gray-600">⏱ ${t.timeElapsed}s</span>
-            <div class="bg-gradient-to-tr from-cyan-600 to-blue-600 text-white rounded-xl rounded-tr-none px-3.5 py-2 text-xs shadow-md border border-cyan-400/15 text-left break-all">
-              ${t.text}
-            </div>
-          </div>
-          <span class="text-[8px] text-gray-600 pr-1">${t.date || ''}</span>
-        `;
-        threadChatBody.appendChild(bubble);
-      });
-
-      setTimeout(() => {
-        threadChatBody.scrollTop = threadChatBody.scrollHeight;
-      }, 50);
-    }
-
-    async function sendThreadMessage() {
-      const text = threadInput.value.trim();
-      if (!text) return;
-
-      const elapsed = state.threadTimerValue > 0 ? state.threadTimerValue.toFixed(1) : "1.5";
-      const noteId = state.selectedNoteIdForThread;
-      const note = state.notes.find(n => n.id === noteId);
-      if (!note) return;
-
-      const newMsg = {
-        id: Date.now().toString(),
-        text: text,
-        timeElapsed: elapsed,
-        date: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
-      };
-
-      const updatedThreads = [...(note.threads || []), newMsg];
-      
-      saveThreadLocal(noteId, updatedThreads);
-
-      if (isCloudActive && state.user) {
-        setSyncState('syncing');
-        const noteDoc = doc(db, 'artifacts', appId, 'users', state.user.uid, 'notes', noteId);
-        try {
-          await updateDoc(noteDoc, { threads: updatedThreads });
-          setSyncState('synced');
-        } catch (e) {
-          setSyncState('error');
-        }
-      }
-
-      threadInput.value = "";
-      resetThreadTimer();
-      startThreadTimer();
-      threadInput.focus();
-    }
-
-    function saveThreadLocal(noteId, updatedThreads) {
-      const note = state.notes.find(n => n.id === noteId);
-      if (note) {
-        note.threads = updatedThreads;
-        renderNotes();
-        renderThreadChats(note);
-        updateStats();
-      }
-    }
-
-    function startThreadTimer() {
-      state.threadTimerValue = 0.0;
-      state.threadTypingStarted = true;
-      clearInterval(state.threadTimerInterval);
-      state.threadTimerInterval = setInterval(() => {
-        state.threadTimerValue += 0.1;
-        threadTimerEl.textContent = state.threadTimerValue.toFixed(1) + 's';
-      }, 100);
-    }
-
-    function resetThreadTimer() {
-      clearInterval(state.threadTimerInterval);
-      state.threadTypingStarted = false;
-      threadTimerEl.textContent = "00.0s";
-    }
-
-    // --- 朝のサルベージ機能 (マッチングアプリ風中央縦長長方形) ---
-    function prepareSalvageDeck() {
-      state.salvagedItems = state.notes.filter(n => (n.status || 'active') === 'active');
-      state.salvageIndex = 0;
-
-      if (state.salvagedItems.length > 0) {
-        salvageModal.classList.remove('hidden');
-        showCard(0);
-      } else {
-        showToast("現在、サルベージできる未整理トピックがありません。まずはキャッシュを吐き出してください。");
-      }
-    }
-
-    function showCard(index) {
-      if (index >= state.salvagedItems.length) {
-        swipeCardElement.classList.add('hidden');
-        deckControls.classList.add('hidden');
-        deckEmptyState.classList.remove('hidden');
-        return;
-      }
-
-      swipeCardElement.classList.remove('hidden');
-      deckControls.classList.remove('hidden');
-      deckEmptyState.classList.add('hidden');
-
-      const item = state.salvagedItems[index];
-      cardDate.textContent = `掘り起こしセッション #${index + 1}`;
-      cardTime.textContent = `⏱ ${item.timeElapsed}s かけた思考`;
-      cardText.textContent = item.text;
-
-      // カードのアニメーションリセット
-      swipeCardElement.style.transform = 'translate(0, 0) rotate(0deg)';
-      swipeCardElement.style.opacity = '1';
-    }
-
-    function animateSwipe(direction) {
-      const card = swipeCardElement;
-      if (direction === 'right') {
-        card.style.transform = 'translate(300px, 40px) rotate(20deg)';
-        card.style.opacity = '0';
-        
-        const currentItem = state.salvagedItems[state.salvageIndex];
-        setTimeout(() => {
-          updateNoteStatus(currentItem.id, 'today');
-          nextCard();
-        }, 180);
-      } else {
-        card.style.transform = 'translate(-300px, 40px) rotate(-20deg)';
-        card.style.opacity = '0';
-        
-        setTimeout(() => {
-          showToast("保留にしました");
-          nextCard();
-        }, 180);
-      }
-    }
-
-    function nextCard() {
-      state.salvageIndex++;
-      showCard(state.salvageIndex);
-    }
-
-    btnSwipeRight.addEventListener('click', () => animateSwipe('right'));
-    btnSwipeLeft.addEventListener('click', () => animateSwipe('left'));
-
-    // ポップアップカード内スワイプドラッグイベント
-    let cardDragStartX = 0;
-    let isDraggingCard = false;
-
-    swipeCardElement.addEventListener('mousedown', (e) => {
-      cardDragStartX = e.clientX;
-      isDraggingCard = true;
-    });
-    window.addEventListener('mousemove', (e) => {
-      if (!isDraggingCard) return;
-      const diff = e.clientX - cardDragStartX;
-      swipeCardElement.style.transform = `translate(${diff}px, ${diff * 0.05}px) rotate(${diff * 0.05}deg)`;
-    });
-    window.addEventListener('mouseup', (e) => {
-      if (!isDraggingCard) return;
-      isDraggingCard = false;
-      const diff = e.clientX - cardDragStartX;
-      if (diff > 120) {
-        animateSwipe('right');
-      } else if (diff < -120) {
-        animateSwipe('left');
-      } else {
-        swipeCardElement.style.transform = 'translate(0,0) rotate(0)';
-      }
-    });
-
-    swipeCardElement.addEventListener('touchstart', (e) => {
-      cardDragStartX = e.touches[0].clientX;
-      isDraggingCard = true;
-    });
-    swipeCardElement.addEventListener('touchmove', (e) => {
-      if (!isDraggingCard) return;
-      const diff = e.touches[0].clientX - cardDragStartX;
-      swipeCardElement.style.transform = `translate(${diff}px, ${diff * 0.05}px) rotate(${diff * 0.05}deg)`;
-    });
-    swipeCardElement.addEventListener('touchend', (e) => {
-      if (!isDraggingCard) return;
-      isDraggingCard = false;
-      const diff = e.changedTouches[0].clientX - cardDragStartX;
-      if (diff > 90) {
-        animateSwipe('right');
-      } else if (diff < -90) {
-        animateSwipe('left');
-      } else {
-        swipeCardElement.style.transform = 'translate(0,0) rotate(0)';
-      }
-    });
-
-    // --- タイマー機能 ---
-    function startTimer() {
-      if (state.isTypingStarted) return;
-      state.isTypingStarted = true;
-      state.timerValue = 0.0;
-      
-      state.timerInterval = setInterval(() => {
-        state.timerValue += 0.1;
-        writingTimer.textContent = state.timerValue.toFixed(1) + 's';
-      }, 100);
-    }
-
-    function resetTimer() {
-      clearInterval(state.timerInterval);
-      state.isTypingStarted = false;
-      writingTimer.textContent = '00.0s';
-    }
-
-    // トースト通知システム
+    // UIエレメント一覧取得
+    const cacheInput = document.getElementById('cacheInput');
+    const timerLabel = document.getElementById('timerLabel');
+    const timerProgress = document.getElementById('timerProgress');
+    const btnRelease = document.getElementById('btnRelease');
+    const cacheContainer = document.getElementById('cacheContainer');
+    const countToday = document.getElementById('countToday');
+    const detectedCategory = document.getElementById('detectedCategory');
+
+    const tabToday = document.getElementById('tabToday');
+    const tabArchive = document.getElementById('tabArchive');
+    const syncStatus = document.getElementById('syncStatus');
+
+    const threadDrawer = document.getElementById('threadDrawer');
+    const btnCloseThread = document.getElementById('btnCloseThread');
+    const threadOriginText = document.getElementById('threadOriginText');
+    const threadMetaTime = document.getElementById('threadMetaTime');
+    const threadMessageLog = document.getElementById('threadMessageLog');
+    const threadTimerLabel = document.getElementById('threadTimerLabel');
+    const threadInput = document.getElementById('threadInput');
+    const btnSendThread = document.getElementById('btnSendThread');
+
+    const salvageModal = document.getElementById('salvageModal');
+    const btnTriggerSalvage = document.getElementById('btnTriggerSalvage');
+    const btnCloseSalvage = document.getElementById('btnCloseSalvage');
+    const btnFinishSalvage = document.getElementById('btnFinishSalvage');
+    const salvageDeckSlot = document.getElementById('salvageDeckSlot');
+    const btnSalvageArchive = document.getElementById('btnSalvageArchive');
+    const btnSalvageKeep = document.getElementById('btnSalvageKeep');
+    const btnSalvageDelete = document.getElementById('btnSalvageDelete');
+
+    const authModal = document.getElementById('authModal');
+    const btnGoogleAuth = document.getElementById('btnGoogleAuth');
+    const btnCloseAuth = document.getElementById('btnCloseAuth');
+    const btnDoLogin = document.getElementById('btnDoLogin');
+    const authBtnText = document.getElementById('authBtnText');
+
+    // トーストユーティリティ
     function showToast(message, type = "info") {
+      const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
-      toast.className = `flex items-center space-x-2 px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold transition-all duration-300 transform translate-y-2 opacity-0 z-50`;
+      toast.className = `pointer-events-auto flex items-center space-x-2 px-3 py-2 rounded-xl border text-xs font-bold shadow-xl transition duration-300 transform translate-y-2 opacity-0`;
       
-      if (type === "success") {
-        toast.className += " bg-emerald-950/80 text-emerald-300 border-emerald-500/20";
-        toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> <span>${message}</span>`;
+      if(type === "success") {
+        toast.className += " bg-emerald-950 border-emerald-500/30 text-emerald-400";
+        toast.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${message}</span>`;
+      } else if(type === "error") {
+        toast.className += " bg-red-950 border-red-500/30 text-red-400";
+        toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <span>${message}</span>`;
       } else {
-        toast.className += " bg-blue-950/80 text-blue-300 border-blue-500/20";
-        toast.innerHTML = `<i class="fa-solid fa-info-circle text-blue-400"></i> <span>${message}</span>`;
+        toast.className += " bg-gray-900 border-white/[0.08] text-slate-300";
+        toast.innerHTML = `<i class="fa-solid fa-info"></i> <span>${message}</span>`;
       }
-
-      const container = document.getElementById('toast-container');
+      
       container.appendChild(toast);
-
       setTimeout(() => {
         toast.classList.remove('translate-y-2', 'opacity-0');
       }, 50);
 
       setTimeout(() => {
-        toast.classList.add('translate-y-2', 'opacity-0');
+        toast.classList.add('opacity-0', 'translate-y-[-4px]');
         setTimeout(() => toast.remove(), 300);
-      }, 2500);
+      }, 3000);
     }
 
-    // 統計計算と脳容量表示
-    function updateStats() {
-      if (state.notes.length === 0) {
-        totalTimeStat.textContent = "0.0秒";
-        avgTimeStat.textContent = "0.0秒";
-        resetShareBars();
+    // 初期化関数群
+    async function initFirebase() {
+      try {
+        const app = initializeApp(firebaseConfig);
+        state.db = getFirestore(app);
+        state.auth = getAuth(app);
+
+        // 匿名認証によるクイックスタート
+        onAuthStateChanged(state.auth, (user) => {
+          if (user) {
+            state.currentUser = user;
+            // リアルタイム同期リスナー開始
+            subscribeCaches(user.uid);
+            
+            // Google連携済みの判定（簡易）
+            if (user.providerData.some(p => p.providerId === 'google.com')) {
+              authBtnText.textContent = "連携完了";
+              btnGoogleAuth.className = "flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-500/20 text-xs font-bold";
+            }
+          } else {
+            signInAnonymously(state.auth).catch(err => {
+              console.error("匿名サインイン失敗", err);
+              showToast("認証サーバーへの接続に失敗しました", "error");
+            });
+          }
+        });
+      } catch (e) {
+        console.warn("Firebase初期化エラー。ローカルモックにフォールバックします。", e);
+        setupLocalMock();
+      }
+    }
+
+    // Firestoreデータ監視
+    function subscribeCaches(uid) {
+      const q = query(
+        collection(state.db, "users", uid, "caches"),
+        orderBy("createdAt", "desc")
+      );
+
+      onSnapshot(q, (snapshot) => {
+        const list = [];
+        snapshot.forEach((doc) => {
+          list.push({ id: doc.id, ...doc.data() });
+        });
+        state.caches = list;
+        renderCacheList();
+        updateMetadataDOM();
+        
+        syncStatus.innerHTML = `<i class="fa-solid fa-cloud text-xs text-emerald-400"></i>`;
+        syncStatus.title = "同期完了";
+      }, (error) => {
+        console.error("Snapshot error:", error);
+        syncStatus.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-xs text-orange-400"></i>`;
+        syncStatus.title = "同期エラー";
+      });
+    }
+
+    // ローカル用モック（Firebaseがブロックされた時用）
+    function setupLocalMock() {
+      state.caches = JSON.parse(localStorage.getItem('brain_cache_mock') || '[]');
+      renderCacheList();
+      updateMetadataDOM();
+      syncStatus.innerHTML = `<i class="fa-solid fa-wifi text-xs text-slate-500"></i>`;
+      syncStatus.title = "オフライン・ローカル保存モード";
+    }
+
+    function saveLocalMock() {
+      localStorage.setItem('brain_cache_mock', JSON.stringify(state.caches));
+      renderCacheList();
+      updateMetadataDOM();
+    }
+
+    // メタ情報DOM更新
+    function updateMetadataDOM() {
+      const todayCount = state.caches.filter(c => !c.isArchived).length;
+      countToday.textContent = todayCount;
+    }
+
+    // キーワードによるカテゴリ自動判定
+    function detectCategoryFromText(text) {
+      const lower = text.toLowerCase();
+      if (lower.includes('todo') || lower.includes('やる') || lower.includes('タスク') || /^[-\*]\s/.test(lower)) {
+        return 'task';
+      }
+      if (lower.includes('アイデア') || lower.includes('ひらめき') || lower.includes('思いつき') || lower.includes('開発')) {
+        return 'idea';
+      }
+      if (lower.includes('うれしい') || lower.includes('つらい') || lower.includes('むかつく') || lower.includes('しんどい')) {
+        return 'emotion';
+      }
+      return 'inbox';
+    }
+
+    // メインタイマーロジック
+    function startTimer() {
+      state.isTypingStarted = true;
+      state.typingSeconds = 0;
+      timerProgress.className = "h-full bg-indigo-500 w-0";
+      
+      if(state.typingTimer) clearInterval(state.typingTimer);
+      
+      state.typingTimer = setInterval(() => {
+        state.typingSeconds++;
+        
+        // 1分(60秒)制限をMAXとしてプログレス計算
+        const progress = Math.min((state.typingSeconds / 60) * 100, 100);
+        timerProgress.style.width = `${progress}%`;
+        
+        // タイマー色の変化（危険度演出）
+        if(state.typingSeconds >= 45) {
+          timerProgress.className = "h-full bg-red-500";
+        } else if(state.typingSeconds >= 30) {
+          timerProgress.className = "h-full bg-orange-500";
+        }
+        
+        const m = String(Math.floor(state.typingSeconds / 60)).padStart(2, '0');
+        const s = String(state.typingSeconds % 60).padStart(2, '0');
+        timerLabel.textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function stopAndResetTimer() {
+      if(state.typingTimer) clearInterval(state.typingTimer);
+      state.typingTimer = null;
+      state.isTypingStarted = false;
+      state.typingSeconds = 0;
+      timerLabel.textContent = "00:00";
+      timerProgress.style.width = "0%";
+      timerProgress.className = "h-full bg-indigo-500";
+    }
+
+    // スレッド側タイマー
+    function startThreadTimer() {
+      state.threadTypingStarted = true;
+      state.threadTypingSeconds = 300; // 5分カウントダウン
+      
+      if(state.threadTypingTimer) clearInterval(state.threadTypingTimer);
+      
+      state.threadTypingTimer = setInterval(() => {
+        state.threadTypingSeconds--;
+        if(state.threadTypingSeconds <= 0) {
+          clearInterval(state.threadTypingTimer);
+          showToast("深掘りセッション制限時間に達しました", "info");
+          threadInput.disabled = true;
+        }
+        const m = String(Math.floor(state.threadTypingSeconds / 60)).padStart(2, '0');
+        const s = String(state.threadTypingSeconds % 60).padStart(2, '0');
+        threadTimerLabel.textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    // 脳内解放（投稿処理）
+    async function releaseCache() {
+      const val = cacheInput.value.trim();
+      if(!val) return;
+
+      const detected = detectCategoryFromText(val);
+      const elapsed = state.typingSeconds;
+      
+      // 楽観的UI更新用の疑似オブジェクト
+      const newCache = {
+        id: "temp_" + Date.now(),
+        content: val,
+        category: detected,
+        isArchived: false,
+        elapsedSeconds: elapsed,
+        createdAt: new Date(),
+        threads: []
+      };
+
+      // 画面を先行更新
+      if(!state.db) {
+        state.caches.unshift(newCache);
+        saveLocalMock();
+      } else {
+        // バックグラウンドでFirestoreへ
+        try {
+          await addDoc(collection(state.db, "users", state.currentUser.uid, "caches"), {
+            content: val,
+            category: detected,
+            isArchived: false,
+            elapsedSeconds: elapsed,
+            createdAt: serverTimestamp(),
+            threads: []
+          });
+        } catch (e) {
+          console.error("Firestore追加失敗", e);
+        }
+      }
+
+      cacheInput.value = "";
+      detectedCategory.classList.add('hidden');
+      stopAndResetTimer();
+      showToast("脳内からキャッシュをパージしました", "success");
+    }
+
+    // キャッシュ削除
+    async function deleteCacheItem(id) {
+      if(!state.db) {
+        state.caches = state.caches.filter(c => c.id !== id);
+        saveLocalMock();
+      } else {
+        await deleteDoc(doc(state.db, "users", state.currentUser.uid, "caches", id));
+      }
+      showToast("キャッシュを完全抹消しました");
+    }
+
+    // キャッシュアーカイブ切り替え
+    async function toggleArchiveItem(id, currentStatus) {
+      if(!state.db) {
+        const item = state.caches.find(c => c.id === id);
+        if(item) item.isArchived = !currentStatus;
+        saveLocalMock();
+      } else {
+        await updateDoc(doc(state.db, "users", state.currentUser.uid, "caches", id), {
+          isArchived: !currentStatus
+        });
+      }
+      showToast(currentStatus ? "リストへ復帰しました" : "アーカイブへ格納しました");
+    }
+
+    // カテゴリマニュアルアップデート
+    async function updateItemCategory(id, newCat) {
+      if(!state.db) {
+        const item = state.caches.find(c => c.id === id);
+        if(item) item.category = newCat;
+        saveLocalMock();
+      } else {
+        await updateDoc(doc(state.db, "users", state.currentUser.uid, "caches", id), {
+          category: newCat
+        });
+      }
+      showToast(`カテゴリを ${newCat.toUpperCase()} に変更しました`, "success");
+    }
+
+    // スレッドオープン
+    function openThread(id) {
+      const item = state.caches.find(c => c.id === id);
+      if(!item) return;
+
+      state.activeThreadId = id;
+      threadOriginText.textContent = item.content;
+      
+      const timeStr = item.createdAt.toLocaleTimeString ? item.createdAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "Recent";
+      threadMetaTime.textContent = timeStr;
+      
+      renderThreadMessages(item.threads || []);
+      
+      threadDrawer.classList.remove('hidden');
+      setTimeout(() => {
+        threadDrawer.classList.remove('translate-x-full');
+      }, 10);
+      
+      threadInput.disabled = false;
+      threadInput.focus();
+      
+      if(state.threadTypingTimer) clearInterval(state.threadTypingTimer);
+      threadTimerLabel.textContent = "05:00";
+      state.threadTypingStarted = false;
+    }
+
+    function renderThreadMessages(threads) {
+      threadMessageLog.innerHTML = "";
+      if(threads.length === 0) {
+        threadMessageLog.innerHTML = `<div class="text-slate-600 italic text-center py-4">追加の掘り下げはありません</div>`;
+        return;
+      }
+      threads.forEach(t => {
+        const msg = document.createElement('div');
+        msg.className = `p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.04] text-slate-300 leading-relaxed break-all`;
+        msg.textContent = t.text;
+        threadMessageLog.appendChild(msg);
+      });
+      threadMessageLog.scrollTop = threadMessageLog.scrollHeight;
+    }
+
+    async function sendThreadMessage() {
+      const val = threadInput.value.trim();
+      if(!val || !state.activeThreadId) return;
+
+      const item = state.caches.find(c => c.id === state.activeThreadId);
+      if(!item) return;
+
+      const newThreads = [...(item.threads || []), { text: val, createdAt: new Date() }];
+
+      if(!state.db) {
+        item.threads = newThreads;
+        saveLocalMock();
+        renderThreadMessages(newThreads);
+      } else {
+        await updateDoc(doc(state.db, "users", state.currentUser.uid, "caches", state.activeThreadId), {
+          threads: newThreads
+        });
+        // Firebaseのリスナー経由で自動描画されるが、ラグ防止でローカル描画
+        renderThreadMessages(newThreads);
+      }
+      threadInput.value = "";
+    }
+
+    // メイン一覧描画
+    function renderCacheList() {
+      cacheContainer.innerHTML = "";
+      
+      const filtered = state.caches.filter(c => {
+        if(state.activeTab === 'today') return !c.isArchived;
+        return c.isArchived;
+      });
+
+      if(filtered.length === 0) {
+        cacheContainer.innerHTML = `
+          <div class="text-center py-12 text-slate-500 text-xs">
+            <i class="fa-solid fa-box-open text-slate-600 block text-xl mb-2"></i>
+            表示するアイテムがありません
+          </div>`;
         return;
       }
 
-      let total = 0;
-      state.notes.forEach(n => total += parseFloat(n.timeElapsed || 0));
-      totalTimeStat.textContent = total.toFixed(1) + "秒";
-      avgTimeStat.textContent = (total / state.notes.length).toFixed(1) + "秒";
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.className = `p-3.5 rounded-xl border border-white/[0.05] bg-gray-900/20 hover:bg-gray-900/50 transition flex flex-col space-y-2 relative group/card`;
+        card.dataset.id = item.id;
+        
+        // カテゴリ毎のインジケータ色線
+        let borderIndicator = "bg-slate-600";
+        if(item.category === 'task') borderIndicator = "bg-orange-500";
+        if(item.category === 'idea') borderIndicator = "bg-cyan-500";
+        if(item.category === 'emotion') borderIndicator = "bg-pink-500";
 
-      let counts = { todo: 0, idea: 0, worry: 0, note: 0 };
-      state.notes.forEach(n => {
-        if (n.category && counts[n.category] !== undefined) {
-          counts[n.category]++;
+        // ドラッグオーバー受け入れ設定
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          card.classList.add('drag-over');
+        });
+        card.addEventListener('dragleave', () => {
+          card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          card.classList.remove('drag-over');
+          const cat = e.dataTransfer.getData('text/plain');
+          if(cat) updateItemCategory(item.id, cat);
+        });
+
+        // 経過時間計算
+        const min = String(Math.floor((item.elapsedSeconds || 0) / 60)).padStart(2, '0');
+        const sec = String((item.elapsedSeconds || 0) % 60).padStart(2, '0');
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between space-x-2">
+            <div class="flex items-start space-x-2.5 flex-1 min-w-0">
+              <div class="h-4 w-[3px] rounded-full ${borderIndicator} mt-1 flex-shrink-0"></div>
+              <p class="text-xs text-slate-200 leading-relaxed font-medium break-all whitespace-pre-wrap flex-1 select-text">${item.content}</p>
+            </div>
+            
+            <div class="flex items-center space-x-1 opacity-100 sm:opacity-0 group-hover/card:opacity-100 transition-opacity flex-shrink-0">
+              <button class="btn-item-thread h-6 w-6 rounded bg-white/[0.03] hover:bg-white/[0.08] text-slate-400 hover:text-indigo-400 flex items-center justify-center transition" title="深掘りスレッド">
+                <i class="fa-solid fa-comments text-[10px]"></i>
+              </button>
+              <button class="btn-item-archive h-6 w-6 rounded bg-white/[0.03] hover:bg-white/[0.08] text-slate-400 hover:text-slate-200 flex items-center justify-center transition" title="${item.isArchived ? '今日に戻す' : 'アーカイブ'}">
+                <i class="fa-solid ${item.isArchived ? 'fa-arrow-up-from-bracket' : 'fa-box-archive'} text-[10px]"></i>
+              </button>
+              <button class="btn-item-delete h-6 w-6 rounded bg-white/[0.03] hover:bg-white/[0.08] text-slate-400 hover:text-red-400 flex items-center justify-center transition" title="完全削除">
+                <i class="fa-solid fa-trash-can text-[10px]"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-white/[0.02]">
+            <div class="flex items-center space-x-2">
+              <span class="uppercase font-extrabold tracking-wider text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-slate-400">${item.category || 'inbox'}</span>
+              <span class="flex items-center space-x-1"><i class="fa-regular fa-clock text-[9px]"></i> <span>吐き出し所要: ${min}:${sec}</span></span>
+            </div>
+            <div class="text-slate-600">
+              ${item.threads && item.threads.length > 0 ? `<span class="text-indigo-400/80 font-bold"><i class="fa-solid fa-comment-dots"></i> 深掘り ${item.threads.length}</span>` : ''}
+            </div>
+          </div>
+        `;
+
+        // 子ボタン各種イベントバインド
+        card.querySelector('.btn-item-thread').addEventListener('click', () => openThread(item.id));
+        card.querySelector('.btn-item-archive').addEventListener('click', () => toggleArchiveItem(item.id, item.isArchived));
+        card.querySelector('.btn-item-delete').addEventListener('click', () => deleteCacheItem(item.id));
+
+        cacheContainer.appendChild(card);
+      });
+    }
+
+    // ======================== サルベージデックロジック（マッチングUI風） ========================
+    function prepareSalvageDeck() {
+      // 未アーカイブかつスレッドが空または浅いものをランダム、もしくは古い順に最大5件抽出
+      state.salvageDeckList = state.caches.filter(c => !c.isArchived).slice(-5);
+      state.salvageCurrentIndex = 0;
+
+      if(state.salvageDeckList.length === 0) {
+        showToast("現在サルベージ可能なアクティブキャッシュがありません");
+        return;
+      }
+
+      salvageModal.classList.remove('hidden');
+      renderSalvageCard();
+    }
+
+    function renderSalvageCard() {
+      salvageDeckSlot.innerHTML = "";
+      
+      if(state.salvageCurrentIndex >= state.salvageDeckList.length) {
+        salvageDeckSlot.innerHTML = `
+          <div class="text-center p-6 text-emerald-400">
+            <i class="fa-solid fa-circle-check text-2xl mb-2 block"></i>
+            <p class="text-xs font-bold">全てのデックをレビュー完了！</p>
+          </div>`;
+        return;
+      }
+
+      const item = state.salvageDeckList[state.salvageCurrentIndex];
+      const card = document.createElement('div');
+      card.className = `salvage-card absolute inset-4 p-5 rounded-xl border border-white/[0.1] bg-gradient-to-b from-gray-900 to-slate-950 flex flex-col justify-between shadow-2xl`;
+      
+      card.innerHTML = `
+        <div class="space-y-3 flex-1 overflow-y-auto no-scrollbar">
+          <div class="flex items-center justify-between text-[10px] text-slate-500">
+            <span class="font-bold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 uppercase">${item.category}</span>
+            <span>パージ元: Today</span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed select-none">${item.content}</p>
+        </div>
+        <div class="text-center text-[10px] text-slate-600 font-bold pt-2 border-t border-white/[0.04]">
+          カードを左右にドラッグ、または下のボタンで判定
+        </div>
+      `;
+
+      // 簡単なタスクスワイプのシミュレート（PointerEvents）
+      let startX = 0;
+      let currentX = 0;
+      
+      card.addEventListener('pointerdown', (e) => {
+        startX = e.clientX;
+        card.style.transition = 'none';
+        card.setPointerCapture(e.pointerId);
+      });
+
+      card.addEventListener('pointermove', (e) => {
+        if (startX === 0) return;
+        currentX = e.clientX;
+        const diffX = currentX - startX;
+        card.style.transform = `translateX(${diffX}px) rotate(${diffX * 0.05}deg)`;
+        
+        if (diffX > 60) card.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        else if (diffX < -60) card.style.borderColor = 'rgba(249, 115, 22, 0.4)';
+        else card.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+      });
+
+      card.addEventListener('pointerup', (e) => {
+        if (startX === 0) return;
+        const diffX = currentX - startX;
+        startX = 0;
+        
+        if (diffX > 120) {
+          // 右スワイプ: キープ(何もしない/本日再認識)
+          handleSalvageAction('keep');
+        } else if (diffX < -120) {
+          // 左スワイプ: アーカイブ
+          handleSalvageAction('archive');
+        } else {
+          // リセット
+          card.style.transition = 'transform 0.3s ease, border-color 0.3s';
+          card.style.transform = 'translateX(0) rotate(0)';
+          card.style.borderColor = 'rgba(255, 255, 255, 0.1)';
         }
       });
 
-      const totalCategorized = counts.todo + counts.idea + counts.worry + counts.note || 1;
-      const getPercent = (count) => Math.round((count / totalCategorized) * 100);
+      salvageDeckSlot.appendChild(card);
+    }
 
-      const todoPct = getPercent(counts.todo);
-      const ideaPct = getPercent(counts.idea);
-      const worryPct = getPercent(counts.worry);
-      const notePct = getPercent(counts.note);
+    async function handleSalvageAction(action) {
+      if(state.salvageCurrentIndex >= state.salvageDeckList.length) return;
+      const item = state.salvageDeckList[state.salvageCurrentIndex];
 
-      shareTodo.textContent = `${todoPct}%`;
-      barTodo.style.width = `${todoPct}%`;
-      shareIdea.textContent = `${ideaPct}%`;
-      barIdea.style.width = `${ideaPct}%`;
-      shareWorry.textContent = `${worryPct}%`;
-      barWorry.style.width = `${worryPct}%`;
-      shareNote.textContent = `${notePct}%`;
-      barNote.style.width = `${notePct}%`;
-
-      // 脳内容量の同期
-      const activeNotes = state.notes.filter(n => (n.status || 'active') === 'active');
-      const remaining = Math.max(10, 100 - (activeNotes.length * 10));
-      brainCapacityEl.textContent = `${remaining}%`;
-      if (remaining < 30) {
-        brainCapacityEl.className = "text-red-500 font-bold animate-pulse";
-      } else if (remaining < 60) {
-        brainCapacityEl.className = "text-amber-400 font-bold";
-      } else {
-        brainCapacityEl.className = "text-cyan-400 font-bold";
+      const cardDOM = salvageDeckSlot.querySelector('.salvage-card');
+      if(cardDOM) {
+        cardDOM.style.transition = 'all 0.3s ease';
+        if(action === 'archive') cardDOM.style.transform = 'translateX(-200%) rotate(-30deg)';
+        if(action === 'keep') cardDOM.style.transform = 'translateX(200%) rotate(30deg)';
+        if(action === 'delete') cardDOM.style.transform = 'scale(0.5) opacity-0';
       }
+
+      setTimeout(async () => {
+        if(action === 'archive') {
+          await toggleArchiveItem(item.id, false);
+        } else if(action === 'delete') {
+          await deleteCacheItem(item.id);
+        } else {
+          showToast("タスクの優先度を本日に維持しました", "success");
+        }
+
+        state.salvageCurrentIndex++;
+        renderSalvageCard();
+      }, 200);
     }
 
-    function resetShareBars() {
-      shareTodo.textContent = "0%";
-      barTodo.style.width = "0%";
-      shareIdea.textContent = "0%";
-      barIdea.style.width = "0%";
-      shareWorry.textContent = "0%";
-      barWorry.style.width = "0%";
-      shareNote.textContent = "0%";
-      barNote.style.width = "0%";
-    }
+    // ======================== EVENT LISTENERS (イベント設定群) ========================
+    
+    // タイマー起動の最適化（提案の反映：keydown から input へ変更）
+    cacheInput.addEventListener('input', () => {
+      // 未入力状態から文字が入った時のみタイマーを始動する
+      if (!state.isTypingStarted && cacheInput.value.trim() !== "") {
+        startTimer();
+      }
+      
+      // 文字数に応じたリアルタイム簡易カテゴリインジケータ
+      const val = cacheInput.value.trim();
+      if(val.length > 2) {
+        const cat = detectCategoryFromText(val);
+        detectedCategory.textContent = `💡 分類予測: ${cat.toUpperCase()}`;
+        detectedCategory.classList.remove('hidden');
+      } else {
+        detectedCategory.classList.add('hidden');
+      }
+    });
 
-    // --- イベントリスナー ---
-
+    // キーボード送信用のリスナー
     cacheInput.addEventListener('keydown', (e) => {
+      // Enter単体（Ctrlなし）で送信を実行
       if (e.key === 'Enter' && !e.ctrlKey) {
         e.preventDefault();
         releaseCache();
-      } else {
-        startTimer();
       }
     });
 
     btnRelease.addEventListener('click', releaseCache);
-    btnClearAll.addEventListener('click', clearAllNotes);
 
-    // タブ切り替え
-    tabActive.addEventListener('click', () => {
-      state.currentTab = 'active';
-      tabActive.className = "px-3 py-2 text-xs sm:text-sm font-bold border-b-2 border-cyan-500 text-cyan-400 transition flex items-center gap-1.5";
-      tabToday.className = "px-3 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition flex items-center gap-1.5";
-      tabCompleted.className = "px-3 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition flex items-center gap-1.5";
-      renderNotes();
+    // スレッド側のインプット最適化（提案の反映）
+    threadInput.addEventListener('input', () => {
+      if (!state.threadTypingStarted && threadInput.value.trim() !== "") {
+        startThreadTimer();
+      }
     });
 
-    tabToday.addEventListener('click', () => {
-      state.currentTab = 'today';
-      tabActive.className = "px-3 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition flex items-center gap-1.5";
-      tabToday.className = "px-3 py-2 text-xs sm:text-sm font-bold border-b-2 border-cyan-500 text-cyan-400 transition flex items-center gap-1.5";
-      tabCompleted.className = "px-3 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition flex items-center gap-1.5";
-      renderNotes();
-    });
-
-    tabCompleted.addEventListener('click', () => {
-      state.currentTab = 'completed';
-      tabActive.className = "px-3 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition flex items-center gap-1.5";
-      tabToday.className = "px-3 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-300 transition flex items-center gap-1.5";
-      tabCompleted.className = "px-3 py-2 text-xs sm:text-sm font-bold border-b-2 border-cyan-500 text-cyan-400 transition flex items-center gap-1.5";
-      renderNotes();
-    });
-
-    // スレッド
     threadInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.ctrlKey) {
         e.preventDefault();
         sendThreadMessage();
-      } else {
-        if (!state.threadTypingStarted) startThreadTimer();
       }
     });
-    btnThreadSend.addEventListener('click', sendThreadMessage);
-    btnCloseDrawer.addEventListener('click', closeThreadDrawer);
+
+    btnSendThread.addEventListener('click', sendThreadMessage);
+
+    // ビュー切替タブ設定
+    tabToday.addEventListener('click', () => {
+      state.activeTab = 'today';
+      tabToday.className = "px-4 py-2 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 transition";
+      tabArchive.className = "px-4 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
+      renderCacheList();
+    });
+
+    tabArchive.addEventListener('click', () => {
+      state.activeTab = 'archive';
+      tabArchive.className = "px-4 py-2 text-xs font-bold border-b-2 border-indigo-500 text-indigo-400 transition";
+      tabToday.className = "px-4 py-2 text-xs font-bold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition";
+      renderCacheList();
+    });
+
+    // スレッドドロワー終了
+    btnCloseThread.addEventListener('click', () => {
+      threadDrawer.classList.add('translate-x-full');
+      if(state.threadTypingTimer) clearInterval(state.threadTypingTimer);
+      state.threadTypingStarted = false;
+      setTimeout(() => threadDrawer.classList.add('hidden'), 300);
+    });
 
     // サルベージポップアップ開閉
     btnTriggerSalvage.addEventListener('click', prepareSalvageDeck);
@@ -1534,17 +947,31 @@
       tabToday.click(); // サルベージ終了時は自動的にTodayタブを開いて見せる
     });
 
+    btnSalvageArchive.addEventListener('click', () => handleSalvageAction('archive'));
+    btnSalvageKeep.addEventListener('click', () => handleSalvageAction('keep'));
+    btnSalvageDelete.addEventListener('click', () => handleSalvageAction('delete'));
+
     // Google Auth
     btnGoogleAuth.addEventListener('click', () => authModal.classList.remove('hidden'));
     btnCloseAuth.addEventListener('click', () => authModal.classList.add('hidden'));
     btnDoLogin.addEventListener('click', () => {
       authModal.classList.add('hidden');
+      
+      /* 【将来的なFirebase Auth(Googleサインイン)本実装の位置】
+        実際のリポジトリで運用する際は、ここに以下のコードを組み込みます。
+        
+        const provider = new GoogleAuthProvider();
+        signInWithPopup(state.auth, provider)
+          .then((result) => { showToast("サインイン成功", "success"); })
+          .catch((error) => { showToast("サインイン失敗", "error"); });
+      */
+
       authBtnText.textContent = "連携完了";
       btnGoogleAuth.className = "flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-500/20 text-xs font-bold";
       showToast("Googleアカウントに接続しました（デモ）", "success");
     });
 
-    // カテゴリドラッグ
+    // カテゴリチップのドラッグ開始イベント定義
     const chips = document.querySelectorAll('.category-chip');
     chips.forEach(chip => {
       chip.addEventListener('dragstart', (e) => {
@@ -1558,9 +985,10 @@
       });
     });
 
-    // 起動処理
-    loadLocalFallback();
-    initFirebase();
+    // アプリケーション起動
+    window.addEventListener('DOMContentLoaded', () => {
+      initFirebase();
+    });
 
   </script>
 </body>
